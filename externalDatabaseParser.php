@@ -229,6 +229,14 @@ class DatabaseParser extends DefaultPlugin{
 					return null;
 				}
 
+
+				//FOR EACH FILE OPENED, SUBMIT POST REQUEST FOR THE CONTAINED FILES
+				/*
+
+				in javascript 
+
+				*/
+
 				
 			}
 

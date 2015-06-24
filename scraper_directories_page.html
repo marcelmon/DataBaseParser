@@ -55,7 +55,7 @@
 	</style>
 
 	<head>
-	<input id="directories_info" type="hidden">
+	<input id="directories_info_form" type="hidden">
 	</input>
 	</head>
 	<div>
@@ -71,8 +71,14 @@
 
 
 <script>
-	var 
+	var directories_info_form =  document.getElementById("directories_info_form");
 	
-
+	function httpGet(theUrl)
+	{
+	    var xmlHttp = new XMLHttpRequest();
+	    xmlHttp.open( "GET", theUrl, false );
+	    xmlHttp.send( null );
+	    return xmlHttp.responseText;
+	}
 
 </script>
