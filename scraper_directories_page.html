@@ -55,8 +55,10 @@
 	</style>
 
 	<head>
-	<input id="directories_info_form" type="hidden">
-	</input>
+
+	<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" id="hidden_post_form" type="hidden">
+		<input type="text" name="CHILD_DIR_REQUEST"></input>
+	</form>
 	</head>
 	<div>
 	
@@ -66,6 +68,20 @@
 
 	</table>
 	</left_directories_column>
+
+	</div>
+		<?php
+			if($_SERVER["REQUEST_METHOD"] == "POST") {
+				if(isset($_POST['CHILD_DIR_REQUEST'])) {
+					$request_text = $_POST['CHILD_DIR_REQUEST'];
+
+					//call another function that processes the request text sending it back as a hidden element to be scooped up by the javascript
+					$response_text = getFoldersText($request_text);
+					echo "<div type='hidden' id='CHILD_DIR_RESPONSE_TEXT'>".$response_text."</div>";
+				}
+				
+			}
+		?>
 
 </html>
 
@@ -78,22 +94,32 @@
 
 	var rootDirectoriesAndFiles = new Array();
 
+	var allDirectoriesAndFiles;
+
 
 	var pluggin_url ='';
 
 	//the table will be loaded with the first files and directories in the defined_root_dir
 	var tableRows = directories_table.getElementsByTagName("tr");
 	var i;
-	for(i=0; i < tableRows.length; i++) {
-		var isDirectory = receivedRootDirectoriesAndFiles[i].getAttribute('data-isDirectory');
-		var path = receivedRootDirectoriesAndFiles[i].getAttribute('data-isDirectory');
 
-		rootDirectoriesAndFiles[i] = DirectoryAndFileNode(isDirectory, path, rootDirectoriesAndFiles[i].innerHTML, '/', tableRows[i]);
-		rootDirectoriesAndFiles[i].showing=true;
-		rootDirectoriesAndFiles[i].cell=tableRows[i];
-		tableRows[i].onclick() = table_cell_clicked(rootDirectoriesAndFiles[i]);
+
+	var directoriesTableRelation;
+
+	for(i=0; i < tableRows.length; i++) {
+		var isDirectory = tableRows[i].getAttribute('data-isDirectory');
+		var path = tableRows[i].getAttribute('data-path');
+		var dirName = tableRows[i].innerHTML;
+
+		allDirectoriesAndFiles[path] = new DirectoryAndFileNode(isDirectory, path, dirName, '/');
+		allDirectoriesAndFiles[path].showing=true;
+		allDirectoriesAndFiles[path].cell=tableRows[i];
+
+		tableRows[i].onclick() = table_cell_clicked(allDirectoriesAndFiles[path]);
+
 
 	}
+	
 
 
 	function httpGet(theUrl)
@@ -104,6 +130,34 @@
 	    return xmlHttp.responseText;
 	}
 
+	function postHiddenFormInfo(stringToPost, type) {
+		var theForm = document.getElementById('hidden_post_form');
+		var theInput;
+		if(type == 'CHILD_DIR_REQUEST') {
+			theInput=theForm.getElementsByName("CHILD_DIR_REQUEST");
+			theInput.innerHTML=stringToPost;
+			theForm.submit();
+			theForm.reset();
+			var i=0;
+			for(i=0; i<3; i++) {
+
+			}
+		}
+
+	}
+
+	var hidden_form_return_text;
+
+	function getHiddenFormText(type) {
+
+		var responseElement;
+		if(type == 'CHILD_DIR_REQUEST') {
+			responseElement = document.getElementById('CHILD_DIR_RESPONSE_TEXT');
+			if(responseElement == null) {
+				return false;
+			}
+		}
+	}
 	//each level needs a data set, do not always want to download
 	//data-parent
 	//data-children_directories
@@ -111,17 +165,22 @@
 
 	//cell is the actual element var
 
-	function DirectoryAndFileNode(isDirectory, path, dirName, parentDir) {
+	function DirectoryAndFileNode(isDirectory, path, dirName, parentDirNode) {
 		if(isDirectory==null || path==null || name == null || parent == null) {
 			return null;
 		}
 		this.showing = false;
+		this.cell=null;
 		this.isDirectory = isDirectory;
 		this.path = path;
 		this.dirName = dirName;
-		this.parentDir = parentDir;
+		this.parentDirNode = parentDirNode;
 		this.childrenKnown = false;
 		this.isExpanded = false;
+		this.depth = path.split('/').length;
+
+		this.chilrenFiles = new array();
+		this.childrenDirectories = new array();
 		return this;
 		
 	}
@@ -132,6 +191,11 @@
 		var get_string;
 		var returnString;
 		if(cell.isDirectory == true){
+
+			if(cellNode.isExpanded == true) {
+				return 0;
+			}
+
 			if(cell.childrenKnown == false) {
 				get_string = '?request_children_for=' + cellNode.path;
 
@@ -144,7 +208,7 @@
 					return -1;
 				}
 				if(returnString == "NO CHILDREN"){
-					return 0;
+					cellNode.childrenKnown = true;
 				}
 				else{
 					var directoriesAndFiles = returnString.split("\n");
@@ -168,13 +232,56 @@
 									//again skip, bad format
 								}
 								else{
-									if(newIsDir ==)
-									newFileNode = new DirectoryAndFileNode( ((newIsDir == 'true') ? true:false), path, dirName, parentDir, cell)
+									newFileNode = new DirectoryAndFileNode( ((newIsDir == 'true') ? true:false), cellNode.path+'/'+dirName, dirName, cellNode);
+									allDirectoriesAndFiles[newFileNode.path] = newFileNode;
+
+									if(newIsDir==true){
+										cellNode.childrenDirectories.push(newFileNode);
+									}
+									else{
+										cellNode.childrenFiles.push(newFileNode);
+									}
+
 								}
 							}
 						}
 					}
+					cellNode.childrenKnown = true;
 
+				}
+			}
+			//no children are known, so display
+			if(cellNode.showing == false){
+				//really shouldnt happen
+			}
+			else {
+				var k;
+				var currentTableIndex = cellNode.cell.rowIndex+1;
+				var newRow;
+				var depthSpace='';
+
+				//root depth is 1, but indents for root dirs is 0
+				for(k=0; cellNode.depth; k++) {
+					depthSpace.concat('	');
+				}
+				for(k=0; k<cellNode.childrenDirectories.length; k++) {
+					newRow = directories_table.insertRow(currentTableIndex);
+					newRow.innerHTML = depthSpace+'DIRECTORY: 'cellNode.childrenDirectories[k].dirName;
+					//NEED TO SET IF FILE OR IF IS DIRECTORY USING CSS ELEMENT
+					newRow.setAttribute('data-isDirectory', 'true');
+					newRow.setAttribute('data-path', cellNode.childrenDirectories[k].path);
+
+					currentTableIndex++;
+				}
+
+				for(k=0; k<cellNode.childrenFiles.length; k++) {
+					newRow = directories_table.insertRow(currentTableIndex);
+					newRow.innerHTML = depthSpace+'FILE: 'cellNode.childrenFiles[k].dirName;
+					//NEED TO SET IF FILE OR IF IS DIRECTORY USING CSS ELEMENT
+					newRow.setAttribute('data-isDirectory', 'false');
+					newRow.setAttribute('data-path', cellNode.childrenFiles[k].path);
+
+					currentTableIndex++;
 				}
 			}
 		}
