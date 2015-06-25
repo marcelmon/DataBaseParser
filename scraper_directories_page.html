@@ -71,6 +71,8 @@
 
 	</div>
 		<?php
+
+		//NOT SURE IF THIS ACTUALLY WORKLS
 			if($_SERVER["REQUEST_METHOD"] == "POST") {
 				if(isset($_POST['CHILD_DIR_REQUEST'])) {
 					$request_text = $_POST['CHILD_DIR_REQUEST'];
@@ -106,6 +108,7 @@
 
 	var directoriesTableRelation;
 
+	//start by creating dirNodes of all the root dirs with the data info from html bit
 	for(i=0; i < tableRows.length; i++) {
 		var isDirectory = tableRows[i].getAttribute('data-isDirectory');
 		var path = tableRows[i].getAttribute('data-path');
@@ -131,22 +134,25 @@
 	}
 
 
+	//this posts to the hidden form in the head, then calls a timeout set function up to 8 times to see if the extra hidden element was returned 
+
 	function postHiddenFormInfo(stringToPost, type, cellNode) {
 		var theForm = document.getElementById('hidden_post_form');
 		var theInput;
 		var theResponse;
+		//this will just be text response
 		if(type == 'CHILD_DIR_REQUEST') {
+			//set the request in the form input field
 			theInput=theForm.getElementsByName("CHILD_DIR_REQUEST");
 			theInput.innerHTML=stringToPost;
 			theForm.submit();
 			theForm.reset();
-			var i=0;
 			
-			var responseLoop; 
-
+			var i=0;
+			//each time the function in timeout returns false, goto timeout runs, until a max of 8 times
 timeout:	setTimeout(function(){
 				if(getHiddenFormText(type)==false){
-					if(i<3){
+					if(i<8){
 						i++;
 						goto timeout;
 					}
@@ -155,13 +161,16 @@ timeout:	setTimeout(function(){
 					}
 				}
 				else{
+					//on success,response text is passed to the callback functions
 					theResponse = hidden_form_child_dir_return_text;
 					hidden_form_child_dir_return_text = null;
 					request_children_from_server_callback(cellNode, theResponse);
 				}
 
-			}, 1000);
+			}, 250);
 		}
+
+
 
 	}
 
@@ -174,11 +183,14 @@ timeout:	setTimeout(function(){
 		var responseElement;
 		if(type == 'CHILD_DIR_REQUEST') {
 			responseElement = document.getElementById('CHILD_DIR_RESPONSE_TEXT');
+			//if the element doesnt exist, there was no return yet  <--- not sure if this actually works
 			if(responseElement == null) {
 				return false;
 			}
 			else {
+				//
 				hidden_form_child_dir_return_text = responseElement.innerHTML;
+				responseElement.parentNode.removeChild(responseElement);
 				return true;
 			}
 		}
@@ -321,6 +333,9 @@ timeout:	setTimeout(function(){
 			else {
 				display_children(cellNode);
 			}
+		}
+		else {
+			//IS A FILE :O, will need to get the html file, weooo
 		}
 		
 	}
