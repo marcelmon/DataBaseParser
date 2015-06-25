@@ -130,23 +130,44 @@
 	    return xmlHttp.responseText;
 	}
 
-	function postHiddenFormInfo(stringToPost, type) {
+
+	function postHiddenFormInfo(stringToPost, type, cellNode) {
 		var theForm = document.getElementById('hidden_post_form');
 		var theInput;
+		var theResponse;
 		if(type == 'CHILD_DIR_REQUEST') {
 			theInput=theForm.getElementsByName("CHILD_DIR_REQUEST");
 			theInput.innerHTML=stringToPost;
 			theForm.submit();
 			theForm.reset();
 			var i=0;
-			for(i=0; i<3; i++) {
+			
+			var responseLoop; 
 
-			}
+timeout:	setTimeout(function(){
+				if(getHiddenFormText(type)==false){
+					if(i<3){
+						i++;
+						goto timeout;
+					}
+					else{
+						//has been three seconds with no good result, give up, lol
+					}
+				}
+				else{
+					theResponse = hidden_form_child_dir_return_text;
+					hidden_form_child_dir_return_text = null;
+					request_children_from_server_callback(cellNode, theResponse);
+				}
+
+			}, 1000);
 		}
 
 	}
 
-	var hidden_form_return_text;
+	var hidden_form_child_dir_return_text=null;
+
+	
 
 	function getHiddenFormText(type) {
 
@@ -155,6 +176,10 @@
 			responseElement = document.getElementById('CHILD_DIR_RESPONSE_TEXT');
 			if(responseElement == null) {
 				return false;
+			}
+			else {
+				hidden_form_child_dir_return_text = responseElement.innerHTML;
+				return true;
 			}
 		}
 	}
@@ -186,6 +211,97 @@
 	}
 
 
+	function display_children(cellNode) {
+
+		if(cellNode.showing == false){
+				//really shouldnt happen
+		}
+		else {
+			var k;
+			var currentTableIndex = cellNode.cell.rowIndex+1;
+			var newRow;
+			var depthSpace='';
+			//root depth is 1, but indents for root dirs is 0
+			for(k=0; cellNode.depth; k++) {
+				depthSpace.concat('	');
+			}
+
+			for(k=0; k<cellNode.childrenDirectories.length; k++) {
+				newRow = directories_table.insertRow(currentTableIndex);
+				newRow.innerHTML = depthSpace+'DIRECTORY: 'cellNode.childrenDirectories[k].dirName;
+				//NEED TO SET IF FILE OR IF IS DIRECTORY USING CSS ELEMENT
+				newRow.setAttribute('data-isDirectory', 'true');
+				newRow.setAttribute('data-path', cellNode.childrenDirectories[k].path);
+					currentTableIndex++;
+			}
+
+			for(k=0; k<cellNode.childrenFiles.length; k++) {
+				newRow = directories_table.insertRow(currentTableIndex);
+				newRow.innerHTML = depthSpace+'FILE: 'cellNode.childrenFiles[k].dirName;
+				//NEED TO SET IF FILE OR IF IS DIRECTORY USING CSS ELEMENT
+				newRow.setAttribute('data-isDirectory', 'false');
+				newRow.setAttribute('data-path', cellNode.childrenFiles[k].path);
+
+				currentTableIndex++;
+			}
+		}
+
+	}
+
+	function request_children_from_server(cellNode) {
+		var post_string= 'request_children_for=' + cellNode.path;
+		postHiddenFormInfo(post_string, 'CHILD_DIR_REQUEST', cellNode);
+	}
+
+	function request_children_from_server_callback(cellNode, returnString) {
+		if(returnString==null || returnString.length==0){
+			//error
+			return -1;
+		}
+		if(returnString == "NO CHILDREN"){
+			cellNode.childrenKnown = true;
+		}
+		else{
+			var directoriesAndFiles = returnString.split("\n");
+			var j;
+			var singleDirInfo;
+			var dirOrFileName;
+			var newIsDir;
+			var newFileNode;
+			for(j=0; j<directoriesAndFiles.length; j++) {
+				singleDirInfo = directoriesAndFiles[j].split("::");
+				if(singleDirInfo.length != 2) {
+					//skip, bad format
+				}
+				else{
+					if( (dirOrFileName=singleDirInfo[0]).length==0) {
+						//skip bad format
+					}
+					else{
+						newIsDir=singleDirInfo[1];
+						if(newIsDir != 'true' && newIsDir != 'false') {
+							//again skip, bad format
+						}
+						else{
+							newFileNode = new DirectoryAndFileNode( ((newIsDir == 'true') ? true:false), cellNode.path+'/'+dirName, dirName, cellNode);
+							allDirectoriesAndFiles[newFileNode.path] = newFileNode;
+
+							if(newIsDir==true){
+								cellNode.childrenDirectories.push(newFileNode);
+							}
+							else{
+								cellNode.childrenFiles.push(newFileNode);
+							}
+
+						}
+					}
+				}
+			}
+			cellNode.childrenKnown = true;
+			display_children(cellNode);
+		}
+	}
+
 	function table_cell_clicked(cellNode) {
 
 		var get_string;
@@ -197,92 +313,13 @@
 			}
 
 			if(cell.childrenKnown == false) {
-				get_string = '?request_children_for=' + cellNode.path;
+				request_children_from_server(cellNode);
+				return 'requesting';
 
-				//return string in format DIRNAME::isDirectory\n
-				returnString = httpGet(pluggin_url+get_string);
-
-
-				if(returnString==null || returnString.length==0){
-					//error
-					return -1;
-				}
-				if(returnString == "NO CHILDREN"){
-					cellNode.childrenKnown = true;
-				}
-				else{
-					var directoriesAndFiles = returnString.split("\n");
-					var j;
-					var singleDirInfo;
-					var dirOrFileName;
-					var newIsDir;
-					var newFileNode;
-					for(j=0; j<directoriesAndFiles.length; j++) {
-						singleDirInfo = directoriesAndFiles[j].split("::");
-						if(singleDirInfo.length != 2) {
-							//skip, bad format
-						}
-						else{
-							if( (dirOrFileName=singleDirInfo[0]).length==0) {
-								//skip bad format
-							}
-							else{
-								newIsDir=singleDirInfo[1];
-								if(newIsDir != 'true' && newIsDir != 'false') {
-									//again skip, bad format
-								}
-								else{
-									newFileNode = new DirectoryAndFileNode( ((newIsDir == 'true') ? true:false), cellNode.path+'/'+dirName, dirName, cellNode);
-									allDirectoriesAndFiles[newFileNode.path] = newFileNode;
-
-									if(newIsDir==true){
-										cellNode.childrenDirectories.push(newFileNode);
-									}
-									else{
-										cellNode.childrenFiles.push(newFileNode);
-									}
-
-								}
-							}
-						}
-					}
-					cellNode.childrenKnown = true;
-
-				}
 			}
-			//no children are known, so display
-			if(cellNode.showing == false){
-				//really shouldnt happen
-			}
+
 			else {
-				var k;
-				var currentTableIndex = cellNode.cell.rowIndex+1;
-				var newRow;
-				var depthSpace='';
-
-				//root depth is 1, but indents for root dirs is 0
-				for(k=0; cellNode.depth; k++) {
-					depthSpace.concat('	');
-				}
-				for(k=0; k<cellNode.childrenDirectories.length; k++) {
-					newRow = directories_table.insertRow(currentTableIndex);
-					newRow.innerHTML = depthSpace+'DIRECTORY: 'cellNode.childrenDirectories[k].dirName;
-					//NEED TO SET IF FILE OR IF IS DIRECTORY USING CSS ELEMENT
-					newRow.setAttribute('data-isDirectory', 'true');
-					newRow.setAttribute('data-path', cellNode.childrenDirectories[k].path);
-
-					currentTableIndex++;
-				}
-
-				for(k=0; k<cellNode.childrenFiles.length; k++) {
-					newRow = directories_table.insertRow(currentTableIndex);
-					newRow.innerHTML = depthSpace+'FILE: 'cellNode.childrenFiles[k].dirName;
-					//NEED TO SET IF FILE OR IF IS DIRECTORY USING CSS ELEMENT
-					newRow.setAttribute('data-isDirectory', 'false');
-					newRow.setAttribute('data-path', cellNode.childrenFiles[k].path);
-
-					currentTableIndex++;
-				}
+				display_children(cellNode);
 			}
 		}
 		
