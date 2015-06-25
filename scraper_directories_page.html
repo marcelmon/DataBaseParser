@@ -71,14 +71,114 @@
 
 
 <script>
+
 	var directories_info_form =  document.getElementById("directories_info_form");
 	
+	var directories_table = document.getElementById("directories_table");
+
+	var rootDirectoriesAndFiles = new Array();
+
+
+	var pluggin_url ='';
+
+	//the table will be loaded with the first files and directories in the defined_root_dir
+	var tableRows = directories_table.getElementsByTagName("tr");
+	var i;
+	for(i=0; i < tableRows.length; i++) {
+		var isDirectory = receivedRootDirectoriesAndFiles[i].getAttribute('data-isDirectory');
+		var path = receivedRootDirectoriesAndFiles[i].getAttribute('data-isDirectory');
+
+		rootDirectoriesAndFiles[i] = DirectoryAndFileNode(isDirectory, path, rootDirectoriesAndFiles[i].innerHTML, '/', tableRows[i]);
+		rootDirectoriesAndFiles[i].showing=true;
+		rootDirectoriesAndFiles[i].cell=tableRows[i];
+		tableRows[i].onclick() = table_cell_clicked(rootDirectoriesAndFiles[i]);
+
+	}
+
+
 	function httpGet(theUrl)
 	{
 	    var xmlHttp = new XMLHttpRequest();
 	    xmlHttp.open( "GET", theUrl, false );
 	    xmlHttp.send( null );
 	    return xmlHttp.responseText;
+	}
+
+	//each level needs a data set, do not always want to download
+	//data-parent
+	//data-children_directories
+	//data-children_files
+
+	//cell is the actual element var
+
+	function DirectoryAndFileNode(isDirectory, path, dirName, parentDir) {
+		if(isDirectory==null || path==null || name == null || parent == null) {
+			return null;
+		}
+		this.showing = false;
+		this.isDirectory = isDirectory;
+		this.path = path;
+		this.dirName = dirName;
+		this.parentDir = parentDir;
+		this.childrenKnown = false;
+		this.isExpanded = false;
+		return this;
+		
+	}
+
+
+	function table_cell_clicked(cellNode) {
+
+		var get_string;
+		var returnString;
+		if(cell.isDirectory == true){
+			if(cell.childrenKnown == false) {
+				get_string = '?request_children_for=' + cellNode.path;
+
+				//return string in format DIRNAME::isDirectory\n
+				returnString = httpGet(pluggin_url+get_string);
+
+
+				if(returnString==null || returnString.length==0){
+					//error
+					return -1;
+				}
+				if(returnString == "NO CHILDREN"){
+					return 0;
+				}
+				else{
+					var directoriesAndFiles = returnString.split("\n");
+					var j;
+					var singleDirInfo;
+					var dirOrFileName;
+					var newIsDir;
+					var newFileNode;
+					for(j=0; j<directoriesAndFiles.length; j++) {
+						singleDirInfo = directoriesAndFiles[j].split("::");
+						if(singleDirInfo.length != 2) {
+							//skip, bad format
+						}
+						else{
+							if( (dirOrFileName=singleDirInfo[0]).length==0) {
+								//skip bad format
+							}
+							else{
+								newIsDir=singleDirInfo[1];
+								if(newIsDir != 'true' && newIsDir != 'false') {
+									//again skip, bad format
+								}
+								else{
+									if(newIsDir ==)
+									newFileNode = new DirectoryAndFileNode( ((newIsDir == 'true') ? true:false), path, dirName, parentDir, cell)
+								}
+							}
+						}
+					}
+
+				}
+			}
+		}
+		
 	}
 
 </script>
