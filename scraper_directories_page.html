@@ -8,7 +8,7 @@
 
 		margin-left: 0;
 		width: 300px;
-		height: 600px;
+		height: 800px;
 		float: left;
 	}
 
@@ -31,11 +31,20 @@
 	}
 
 
-	middle_iframe_box {
+	.middle_iframe_box {
 		background-color: 'white';
 		margin-left: 300px;
 		height: 600px;
 		overflow: hidden;
+	}
+
+	.iframe_source_box {
+		background-color: 'white';
+		margin-left: 300px;
+		margin-top: 600px;
+		height: 200px;
+		overflow: hidden;
+		float: 
 	}
 
 	bottom_set_rules_block {
@@ -68,6 +77,9 @@
 
 	</table>
 	</left_directories_column>
+	<iframe class='middle_iframe_box' id='file_iframe' src='' onLoad="iframeLoaded()">
+	</iframe>
+	<p class='iframe_source_box' id='iframe_source'></p>
 
 	</div>
 		<?php
@@ -89,6 +101,30 @@
 
 
 <script>
+	
+	var file_iframe = document.getElementById("file_iframe");
+	var frame_source_block = document.getElementById("iframe_source");
+
+	function iframeLoaded() {
+		if(!awaitingIframeSrc == file_iframe.src) {
+			//was some error, try loading again
+		}
+
+		else{
+			frame_source_block.innerHTML = escapeHtml(file_iframe.innerHTML);
+		}
+	}
+
+	function escapeHtml(text) {
+		var map = {
+		    '&': '&amp;',
+		    '<': '&lt;',
+		    '>': '&gt;',
+		    '"': '&quot;',
+			"'": '&#039;'
+		};
+		return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+	}
 
 	var directories_info_form =  document.getElementById("directories_info_form");
 	
@@ -98,7 +134,7 @@
 
 	var allDirectoriesAndFiles;
 
-
+	//contains the profile name too as ?profile=''&
 	var pluggin_url ='';
 
 	//the table will be loaded with the first files and directories in the defined_root_dir
@@ -314,6 +350,8 @@ timeout:	setTimeout(function(){
 		}
 	}
 
+	var awaitingIframeSrc;
+
 	function table_cell_clicked(cellNode) {
 
 		var get_string;
@@ -336,7 +374,14 @@ timeout:	setTimeout(function(){
 		}
 		else {
 			//IS A FILE :O, will need to get the html file, weooo
+			var fileFrame = document.getElementById();
+			//this is a get that will fill the iframe
+			fileFram.src = pluggin_url + cellNode.path;
+
+			awaitingIframeSrc = pluggin_url + cellNode.path;
+
 		}
+
 		
 	}
 

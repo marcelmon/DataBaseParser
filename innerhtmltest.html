@@ -1,0 +1,35 @@
+<html>
+<body>
+<div id="1">
+
+<button id="5">
+</button>
+</div>
+<p id="2">
+</p>
+
+</body>
+</html>
+
+
+<script>
+
+function escapeHtml(text) {
+  var map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+var div1 = document.getElementById('1');
+
+var div2 = document.getElementById('2');
+div2.innerHTML = escapeHtml(div1.innerHTML);
+</script>
+
+
