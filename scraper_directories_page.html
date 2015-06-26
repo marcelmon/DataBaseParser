@@ -123,160 +123,64 @@
 		
 	}
 
-	function findSourceIndex_WithId (element) {
+	function find_escaped_source_index(element) {
 
-		var idIndex = file_iframe.innerHTML.search("id=\""+element.id+"\"");
+		//background color property is added on elements highlighted, need to ensure this is handled
+		var escapedElementHTML = escapeHtml(element.outterHTML);
+		var htmlSearchReturn;
 
-		var whichVal =0;
-		if(idIndex == -1) {
-			//need to check for each possibility
-			idIndex = file_iframe.innerHTML.search("id=\'"+element.id+"\'");
-			if(idIndex == -1) {
-				idIndex = file_iframe.innerHTML.search("id=\""+element.id+"\'");
-				if(idIndex == -1) {
-					idIndex = file_iframe.innerHTML.search("id=\'"+element.id+"\"");
-				}
-				else{
-					whichVal=2;
-				}	
-			}
-			else{
-				whichVal=1;
-			}
-		}
-		else{
-			whichVal=0;
-		}
-		if(idIndex==-1){
-			//really shouldnt
-		}
-		else{
-			whichVal=3;
-		}
+		var foundIndex;
 
-		var foundSourceIndex;
+		var found =false;
 
-		switch(whichVal) {
-			case 0:
-				foundSourceIndex = frame_source_block.innerHTML.search("id="+escapeHtml('\"')+element.id+escapeHtml('\"'));
+		var currentParent;
+		var currentParentOuterHTML;
+		var currentParentStartIndex;
 
-			case 1:
-				foundSourceIndex = frame_source_block.innerHTML.search("id=\'"+escapeHtml('\'')+element.id+escapeHtml('\''));
+		var indexWithinParent;
 
-			case 2:
-				foundSourceIndex = frame_source_block.innerHTML.search("id=\""+escapeHtml('\"')+element.id+escapeHtml('\''));
-
-			case 3:
-				foundSourceIndex = frame_source_block.innerHTML.search("id=\'"+escapeHtml('\'')+element.id+escapeHtml('\"'));
-
-			default:
-		}
-
-		return foundSourceIndex;
-	}
-
-	function findSourceIndex_strcmp(element) {
-
-
-
-		var parent = element.parentNode;
-		var secondParent;
-		var thirdParent;
-		var fourthParent;
-
-		var parentIndexInSource;
-		if(parent != file_iframe){
-			if(parent.id != ''){
-				parentIndexInSource = findSourceIndex_WithId (parent);
-			}
-		}
-
-	}
-
-	function findNode_TAG_innerHTML (element) {
-		var tagName = element.tagName;
-		var innerHTML = element.innerHTML;
-		var tagNodeList = file_iframe.getElementsByTagName(tagName);
-		if(tagNodeList.length == 0) {
+		//exclude the background poperty in the escapedElementHTML
+		if( (htmlSearchReturn = frame_source_block.innerHTML.match(escapedElementHTML)).length==0) {
+			//some error occured
 			return null;
 		}
-		else if(tagNodeList.length == 1) {
-			return element; //is the only possible node
-		}
-
 		else{
-			var matchingTagNodes = Array;
-
-			tagNodeList.forEach(function(node, index) {
-				if(node.innerHTML == innerHTML) {
-					matchTagNodes.push(index);
-				}
-			});
-			if(matchTagNodes.length == 0) {
-				//there were no matches, not going to happen
+			if(htmlSearchReturn.length == 1) {
+				//use the full string to find the match
+				foundIndex = frame_source_block.search(htmlSearchReturn);
+				found = true;
+				return foundIndex;
 			}
 			else{
-				if(matchTagNodes.length == 1) {
-					return element;
+				//more than one matches found
+				currentParent = element.parentNode;
+				currentParentOuterHTML = escapeHtml(currentParent.outterHTML);
+
+				while(found == false && currentParent != file_iframe) {
+
+					htmlSearchReturn = frame_source_block.innerHTML.match(currentParentOuterHTML));
+					if(htmlSearchReturn.length == 1) {
+
+						currentParentStartIndex = frame_source_block.innerHTML.search(htmlSearchReturn);
+						indexWithinParent = currentParentOuterHTML.search(escapedElementHTML);
+						foundIndex = currentParentStartIndex + indexWithinParent;
+						found == true;
+						return foundIndex;
+					}
+					else{
+						currentParent = currentParent.parentNode;
+						currentParentOuterHTML = escapeHtml(currentParent.outterHTML);
+					}
 				}
-				else {
-					//there are multiple, will have to compare source
-				}
+				//if the outside is reached then the current parent is the file_iframe
+				//must determine which child the element is in and simple return that index
+				//almost certainly wont reach here
 			}
 		}
+
 	}
 
 
-	function findSourceIndex(element) {
-		var elementAttributes = element.attributes;
-		var tagName = element.tagName;
-		var innerHTML = element.innerHTML;
-
-		var tagNodeList = file_iframe.getElementsByTagName(tagName);
-		if(tagNodeList.length == 0) {
-			return null;
-		}
-
-		else if(tagNodeList.length == 1) {
-
-			//just need to search the iframe source for the specialchar(element.source) and return
-
-		}
-
-		else if(element.id != '') {
-
-		}
-
-		else if(elementAttributes.length == 0) {
-			//going to have to be through tagName and innerhtml
-
-			var matchTagNodes = Array;
-
-			tagNodeList.forEach(function(node, index) {
-				if(node.innerHTML == innerHTML) {
-					matchTagNodes.push(index);
-				}
-			});
-			if(matchTagNodes.length == 0) {
-				//there were no matches
-			}
-			else{
-				if(matchTagNodes.length == 1) {
-					//the only node is the right one
-				}
-				else {
-					//there are multiple, will have to compare source
-				}
-			}
-		}
-
-		else{
-			var atrributeList = Array();
-			elementAttributes.forEach(function(atrribute){
-				atrributeList[atrribute] = element.getAttribute(atrribute);
-			});
-		}
-	}
 
 
 	function setElementBackgroundColor(element, color) {
@@ -284,14 +188,31 @@
 	}
 
 	function onClickedIframeElement(element) {
-		if(element.id != '') {
-			//game over, this is the simplest way
+		
+		var escapedSourceIndex = find_escaped_source_index(element);
+
+		var highlightStartIndex;
+		var highlightStopIndex;
+
+		var currentIndex = escapedSourceIndex;
+
+		while(currentIndex != 0 && frame_source_block.innerHTML.charAt(currentIndex) != '\n') {
+			currentIndex--;
+		}
+		if(frame_source_block.charAt(currentIndex) == '\n'|| currentIndex==0 ) {
+			highlightStartIndex = currentIndex;
 		}
 
-		else{
-			var tagName;
-			var className;
+		currentIndex = escapedSourceIndex;
+
+		while(currentIndex <frame_source_block.innerHTML.length && frame_source_block.charAt(currentIndex) != '\n') {
+			currentIndex++;
 		}
+		if(frame_source_block.charAt(currentIndex) == '\n'|| currentIndex >= frame_source_block.innerHTML.length ) {
+			highlightStopIndex = currentIndex;
+		}
+
+		//find some way to highlight over
 		
 	}
 
@@ -592,5 +513,175 @@ timeout:	setTimeout(function(){
 
 		
 	}
+/*	function findSourceIndex_WithId (element) {
 
+		var idIndex = file_iframe.innerHTML.search("id=\""+element.id+"\"");
+
+		var whichVal =0;
+		if(idIndex == -1) {
+			//need to check for each possibility
+			idIndex = file_iframe.innerHTML.search("id=\'"+element.id+"\'");
+			if(idIndex == -1) {
+				idIndex = file_iframe.innerHTML.search("id=\""+element.id+"\'");
+				if(idIndex == -1) {
+					idIndex = file_iframe.innerHTML.search("id=\'"+element.id+"\"");
+				}
+				else{
+					whichVal=2;
+				}	
+			}
+			else{
+				whichVal=1;
+			}
+		}
+		else{
+			whichVal=0;
+		}
+		if(idIndex==-1){
+			//really shouldnt
+		}
+		else{
+			whichVal=3;
+		}
+
+		var foundSourceIndex;
+
+		switch(whichVal) {
+			case 0:
+				foundSourceIndex = frame_source_block.innerHTML.search("id="+escapeHtml('\"')+element.id+escapeHtml('\"'));
+
+			case 1:
+				foundSourceIndex = frame_source_block.innerHTML.search("id=\'"+escapeHtml('\'')+element.id+escapeHtml('\''));
+
+			case 2:
+				foundSourceIndex = frame_source_block.innerHTML.search("id=\""+escapeHtml('\"')+element.id+escapeHtml('\''));
+
+			case 3:
+				foundSourceIndex = frame_source_block.innerHTML.search("id=\'"+escapeHtml('\'')+element.id+escapeHtml('\"'));
+
+			default:
+		}
+
+		return foundSourceIndex;
+	}
+
+	function findSourceIndex_strcmp(element) {
+
+
+
+		var parent = element.parentNode;
+		var secondParent;
+		var thirdParent;
+		var fourthParent;
+
+		var parentIndexInSource;
+		if(parent != file_iframe){
+			if(parent.id != ''){
+				parentIndexInSource = findSourceIndex_WithId (parent);
+			}
+		}
+
+	}
+//have FIND NODE and FIND SOURCE INDEX
+//find source index is only for when multiple nodes are returned
+	function findNode_TAG_innerHTML (element) {
+		var tagName = element.tagName;
+		var innerHTML = element.innerHTML;
+		var tagNodeList = file_iframe.getElementsByTagName(tagName);
+		if(tagNodeList.length == 0) {
+			return null;
+		}
+		else if(tagNodeList.length == 1) {
+			return element; //is the only possible node
+		}
+
+		else{
+			var matchingTagNodes = Array;
+
+			tagNodeList.forEach(function(node, index) {
+				if(node.innerHTML == innerHTML) {
+					matchTagNodes.push(node);
+				}
+			});
+			if(matchTagNodes.length == 0) {
+				//there were no matches, not going to happen
+			}
+			else{
+				if(matchTagNodes.length == 1) {
+					return element;
+				}
+				else {
+					//use parent properties
+					if(element != file_iframe) { //else it is obvious, wont happen though
+						var matchingTags_andMatchingParent = Array;
+						tagNodeList.forEach(function(node, index) {
+							if(node.parentNode == element.parentNode) {
+								matchingTags_andMatchingParent.push(node);
+							}
+						});
+						if(matchingTags_andMatchingParent.length == 0) {
+							//shouldnt happen
+						}
+						else {
+							if(match)
+						}
+
+					}
+				}
+			}
+		}
+	}
+
+
+	function findSourceIndex(element) {
+		var elementAttributes = element.attributes;
+		var tagName = element.tagName;
+		var innerHTML = element.innerHTML;
+
+		var tagNodeList = file_iframe.getElementsByTagName(tagName);
+		if(tagNodeList.length == 0) {
+			return null;
+		}
+
+		else if(tagNodeList.length == 1) {
+
+			//just need to search the iframe source for the specialchar(element.source) and return
+
+		}
+
+		else if(element.id != '') {
+
+		}
+
+		else if(elementAttributes.length == 0) {
+			//going to have to be through tagName and innerhtml
+
+			var matchTagNodes = Array;
+
+			tagNodeList.forEach(function(node, index) {
+				if(node.innerHTML == innerHTML) {
+					matchTagNodes.push(index);
+				}
+			});
+			if(matchTagNodes.length == 0) {
+				//there were no matches
+			}
+			else{
+				if(matchTagNodes.length == 1) {
+					//the only node is the right one
+				}
+				else {
+					//there are multiple, will have to compare source
+				}
+			}
+		}
+
+		else{
+			var atrributeList = Array();
+			elementAttributes.forEach(function(atrribute){
+				atrributeList[atrribute] = element.getAttribute(atrribute);
+			});
+		}
+	} */
 </script>
+
