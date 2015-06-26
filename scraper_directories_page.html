@@ -77,9 +77,9 @@
 
 	</table>
 	</left_directories_column>
-	<iframe class='middle_iframe_box' id='file_iframe' src='' onLoad="iframeLoaded()">
+	<iframe class='middle_iframe_box' id='file_iframe' src='' onLoad="iframeLoaded()" sandbox>
 	</iframe>
-	<p class='iframe_source_box' id='iframe_source'></p>
+	<p class='iframe_source_box' id='iframe_source_block'></p>
 
 	</div>
 		<?php
@@ -103,7 +103,10 @@
 <script>
 	
 	var file_iframe = document.getElementById("file_iframe");
-	var frame_source_block = document.getElementById("iframe_source");
+
+	var iframe_source;
+
+	var frame_source_block = document.getElementById("iframe_source_block");
 
 	function iframeLoaded() {
 		if(!awaitingIframeSrc == file_iframe.src) {
@@ -111,8 +114,202 @@
 		}
 
 		else{
+			iframe_source = file_iframe.innerHTML;
 			frame_source_block.innerHTML = escapeHtml(file_iframe.innerHTML);
 		}
+	}
+
+	function highlightDisplayHtml() {
+		
+	}
+
+	function findSourceIndex_WithId (element) {
+
+		var idIndex = file_iframe.innerHTML.search("id=\""+element.id+"\"");
+
+		var whichVal =0;
+		if(idIndex == -1) {
+			//need to check for each possibility
+			idIndex = file_iframe.innerHTML.search("id=\'"+element.id+"\'");
+			if(idIndex == -1) {
+				idIndex = file_iframe.innerHTML.search("id=\""+element.id+"\'");
+				if(idIndex == -1) {
+					idIndex = file_iframe.innerHTML.search("id=\'"+element.id+"\"");
+				}
+				else{
+					whichVal=2;
+				}	
+			}
+			else{
+				whichVal=1;
+			}
+		}
+		else{
+			whichVal=0;
+		}
+		if(idIndex==-1){
+			//really shouldnt
+		}
+		else{
+			whichVal=3;
+		}
+
+		var foundSourceIndex;
+
+		switch(whichVal) {
+			case 0:
+				foundSourceIndex = frame_source_block.innerHTML.search("id="+escapeHtml('\"')+element.id+escapeHtml('\"'));
+
+			case 1:
+				foundSourceIndex = frame_source_block.innerHTML.search("id=\'"+escapeHtml('\'')+element.id+escapeHtml('\''));
+
+			case 2:
+				foundSourceIndex = frame_source_block.innerHTML.search("id=\""+escapeHtml('\"')+element.id+escapeHtml('\''));
+
+			case 3:
+				foundSourceIndex = frame_source_block.innerHTML.search("id=\'"+escapeHtml('\'')+element.id+escapeHtml('\"'));
+
+			default:
+		}
+
+		return foundSourceIndex;
+	}
+
+	function findSourceIndex_strcmp(element) {
+
+
+
+		var parent = element.parentNode;
+		var secondParent;
+		var thirdParent;
+		var fourthParent;
+
+		var parentIndexInSource;
+		if(parent != file_iframe){
+			if(parent.id != ''){
+				parentIndexInSource = findSourceIndex_WithId (parent);
+			}
+		}
+
+	}
+
+	function findNode_TAG_innerHTML (element) {
+		var tagName = element.tagName;
+		var innerHTML = element.innerHTML;
+		var tagNodeList = file_iframe.getElementsByTagName(tagName);
+		if(tagNodeList.length == 0) {
+			return null;
+		}
+		else if(tagNodeList.length == 1) {
+			return element; //is the only possible node
+		}
+
+		else{
+			var matchingTagNodes = Array;
+
+			tagNodeList.forEach(function(node, index) {
+				if(node.innerHTML == innerHTML) {
+					matchTagNodes.push(index);
+				}
+			});
+			if(matchTagNodes.length == 0) {
+				//there were no matches, not going to happen
+			}
+			else{
+				if(matchTagNodes.length == 1) {
+					return element;
+				}
+				else {
+					//there are multiple, will have to compare source
+				}
+			}
+		}
+	}
+
+
+	function findSourceIndex(element) {
+		var elementAttributes = element.attributes;
+		var tagName = element.tagName;
+		var innerHTML = element.innerHTML;
+
+		var tagNodeList = file_iframe.getElementsByTagName(tagName);
+		if(tagNodeList.length == 0) {
+			return null;
+		}
+
+		else if(tagNodeList.length == 1) {
+
+			//just need to search the iframe source for the specialchar(element.source) and return
+
+		}
+
+		else if(element.id != '') {
+
+		}
+
+		else if(elementAttributes.length == 0) {
+			//going to have to be through tagName and innerhtml
+
+			var matchTagNodes = Array;
+
+			tagNodeList.forEach(function(node, index) {
+				if(node.innerHTML == innerHTML) {
+					matchTagNodes.push(index);
+				}
+			});
+			if(matchTagNodes.length == 0) {
+				//there were no matches
+			}
+			else{
+				if(matchTagNodes.length == 1) {
+					//the only node is the right one
+				}
+				else {
+					//there are multiple, will have to compare source
+				}
+			}
+		}
+
+		else{
+			var atrributeList = Array();
+			elementAttributes.forEach(function(atrribute){
+				atrributeList[atrribute] = element.getAttribute(atrribute);
+			});
+		}
+	}
+
+
+	function setElementBackgroundColor(element, color) {
+		element.style.backgroundColor = color;
+	}
+
+	function onClickedIframeElement(element) {
+		if(element.id != '') {
+			//game over, this is the simplest way
+		}
+
+		else{
+			var tagName;
+			var className;
+		}
+		
+	}
+
+	function onMouseOverInFrame(e, frame) {
+
+		//should in fact try and show only the bottomost child when mouseover, use the html to select whole table
+
+		var event = e || frame.event;
+
+		var target = event.target || event.srcElement;
+
+		var targetPreviousBackground = target.style.backgroundColor;
+
+		target.style.backgroundColor= "#00FFFF";
+
+		target.onmouseout = function (){ setElementBackgroundColor(target, targetPreviousBackground); };
+
+		target.onclick = function() { onClickedIframeElement(target); };
 	}
 
 	function escapeHtml(text) {
@@ -124,6 +321,17 @@
 			"'": '&#039;'
 		};
 		return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+	}
+
+	function unescapeHtml(text) {
+		var map = {
+			'&amp;': '&',
+		    '&lt;': '<',
+		    '&gt;': '>',
+		    '&quot;': '"',
+			'&#039;': "'"
+		};
+		return text.replace(/(&amp|&lt|&gt|&quot|&#039)/g, function(m) { return map[m]; });
 	}
 
 	var directories_info_form =  document.getElementById("directories_info_form");
