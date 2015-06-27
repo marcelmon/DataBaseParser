@@ -1,7 +1,8 @@
 <html>
 
 
-<iframe id="frame" width="700px" height="700px" src="index.html" onLoad="iframeLoaded()">
+
+<iframe id="test_1_frame" width="700px" height="700px" src="index.html" onLoad="iframeLoaded()">
 </iframe>
 <textarea id="textArea" width="700px" height="40px">
 </textarea>
@@ -9,8 +10,19 @@
 
 <script>
 
+	var iframe = document.getElementById("test_1_frame");
+
+	var iframe_doc;
+
+
+	function addIframeIndicatorToAllElements() {
+
+	}
+
+
 	function iframeLoaded() {
-		
+		iframe_doc = iframe.contentDocument;
+		iframe.onmouseover = function(theEvent){onMouseOverInFrame(theEvent, iframe_doc);}
 	}
 
 	function onMouseOverInFrame(e, frame) {
@@ -21,17 +33,100 @@
 
 		var target = event.target || event.srcElement;
 
-		var targetPreviousBackground = target.style.backgroundColor;
-
-		target.style.backgroundColor= "#00FFFF";
-
-		target.onmouseout = function (){ setElementBackgroundColor(target, targetPreviousBackground); };
-
 		target.onclick = function() { onClickedIframeElement(target); };
 	}
 
+	function onClickedIframeElement(targetElement) {
+
+		var uniqueAttributes = DetermineUniqueAttributes(targetElement, iframe_doc);
+
+
+
+		if(uniqueAttributes[0] == "THERE IS NO UNIQUE") {
+			//shouldnt happen
+		}
+
+		var searchTree = Array;
+
+		var searchTreeTemp = Array;
+
+		//will start by identifying the parent
+		uniqueAttributes.forEach(function(elementAttributeValue, elementAttributeType) {
+			if(elementAttributesToMatch.length==1) {
+				if(elementAttributeType == "id") {
+					searchTreeTemp = iframe.getElementById(elementAttributeValue);
+				}
+				else{
+
+				}
+			}
+		});
+
+		var currentMatch;
+
+		//is the list of children
+
+		var currentMatchList;
+
+		var currentSearchList;
+
+		var parentTree = iframe;
+
+		uniqueAttributes.forEach(function(matchAttributesList) {
+
+			matchAttributesList.forEach(function(attributeValue, attributeType) {
+
+				if(attributeType == "id") {
+					currentMatch = parentTree.getElementById(attributeValue);
+				}
+				else{
+					if(attributeType == "class") {
+						currentMatchList = parentTree.getElementsByClassName(attributeValue);
+						if(currentMatchList.length == 1) {
+
+						}
+					}
+				}
+
+			});
+
+
+			if(matchAttributesList.length == 1) {
+
+
+				matchAttributesList
+
+				if(matchAttributesList[0][0] == "id") {
+					currentMatch = iframe.getElementById(matchAttributesList[0][1]);
+				}
+				else if(matchAttributesList[0][0] == "class") {
+					currentMatch = iframe.getElementsByClassName(matchAttributesList[0][1]);
+				}
+				else if(matchAttributesList[0][0] == "class") {
+					currentMatch = iframe.getElementsByClassName(matchAttributesList[0][1]);
+				}
+			}
+		});
+
+
+
+		uniqueAttributes.forEach(function(elementAttributeValue, elementAttributeType) {
+			if(elementAttributesToMatch.length==1) {
+				if(elementAttributeType == "id") {
+					searchTreeTemp = iframe.getElementById(elementAttributeValue);
+				}
+				else{
+					
+				}
+			}
+		});
+
+
+	}
 
 	function DetermineUniqueAttributes(element, searchTree) {
+
+
 
 		var reducedSearchTree = searchTree; 
 
@@ -47,12 +142,14 @@
 
 		var arrayIndex;
 
-		var returnArray;
+		var returnArray = Array;
 
 		//if there is id, just use this really...
-		if( (attributeValue= elementAttributes.match("id") )) {
-			attributeTypeArray.push("id");
-			uniqueAttributesArray.push("id");
+		if( elementAttributes.match("id") ) {
+
+
+
+			attributeTypeArray["id"] = element.id;
 
 			arrayIndex = elementAttributes.indexOf("id");
 
@@ -60,30 +157,30 @@
    				elementAttributes.splice(arrayIndex, 1);
 			}
 
-			if((reducedSearchTree = reducedSearchTree.getElementById(attributeValue)).length == 1)  {
+			if((reducedSearchTree = reducedSearchTree.getElementById(attributeTypeArray["id"])).length == 1)  {
 			
-				uniqueAttributesArray.push("id");
-				returnArray.push(uniqueAttributesArray);
+				returnArray.push(attributeTypeArray);
 				return returnArray;
 			}
 		}
-		if( (attributeValue= elementAttributes.match("class") )) {
-			attributeTypeArray.push("class");
+		if( elementAttributes.match("class") ) {
+			attributeTypeArray["class"] = element.class;
 
 			arrayIndex = elementAttributes.indexOf("class");
 			if (arrayIndex > -1) {
    				elementAttributes.splice(arrayIndex, 1);
 			}
 
-			if((reducedSearchTree = reducedSearchTree.getElementsByClassName(attributeValue)).length == 1) {
+			if((reducedSearchTree = reducedSearchTree.getElementsByClassName(attributeTypeArray["class"])).length == 1) {
 			
-				uniqueAttributesArray.push("className");
-				returnArray.push(uniqueAttributesArray);
+				returnArray.push(attributeTypeArray);
 				return returnArray;
 			}
 		}
-		attributeTypeArray.push("tagName");
-		if((reducedSearchTree = reducedSearchTree.getElementsByTagName(elementTagName)).length == 1) {
+
+		//everything has a tag
+		attributeTypeArray["tagName"] = element.tagName;
+		if((reducedSearchTree = reducedSearchTree.getElementsByTagName(attributeTypeArray["tagName"])).length == 1) {
 			returnArray.push(attributeTypeArray);
 			return returnArray;
 		}
@@ -91,8 +188,7 @@
 		var tempSearchTree = Array;
 
 		elementAttributes.forEach(function(attributeType) {
-			attributeTypeArray.push("tagName");
-
+			attributeTypeArray[attributeType] = element.getAttribute(attributeType);
 
 			reducedSearchTree.forEach(function(checkingElement, index, reducedTree) {
 				if(checkingElement.getAttribute(attributeType) != null) {
@@ -103,6 +199,7 @@
 				}
 				//do not add if it doesnt have the attribute
 			});
+
 			reducedSearchTree = tempSearchTree;
 			tempSearchTree = Array;
 			if(reducedSearchTree.length == 1) {
