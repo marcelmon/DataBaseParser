@@ -1,0 +1,149 @@
+**DATABASE PARSER**
+
+	Tasks:
+		-> create (or load) table attributes used to create a new database, these can be set/changed later (possibly dynamicaly)
+
+		-> can create a profile to save all rules/attributes and resulting data
+
+		-> download a chosen website
+
+		-> set rules to scrape data from the downloaded pages, these rules exist in rule_sets and can vary depending on file type/location/name/other
+			-> a rule set can be modified later
+
+		-> processes the downloaded pages based on the rule_sets and build a database (table) of data, marking/displaying any conflicts, missing attributes, or duplicates
+
+		-> can work with a server or other application/database as a plugin, being given information/data and/or passing data back
+
+
+
+	1-Front End Application
+
+		Includes:	- The page loaded to set the rules on a website
+
+					-> rules sets based on: 	-> what attribute is required for a new entry (ex: email, name, ...)
+									-> what constitues a possible new entry (ex: directoy name containing (*), file xml matching (*), ...) 
+										* each possible entry must meet the required attribute
+									-> mapping of attributes (ex: attribute x is elementById(*).innerHTML)
+										* the required attribute(s) must be met
+					
+					-> file/directories with multiple rule sets must scrape based on rule set prioritization
+
+					-> if a rule set is set to multiple files, making changes will promt to apply changes to all files, or create new rule set
+
+
+		***************	- If the application is NOT loaded server-side then it must perform all tasks on the local machine
+					-> the application loads the profiles page imediately (possible login required)
+
+					-> a website url can be specified (and downloaded), or pre-downloaded files can be imported
+
+					-> the rule setting page is displayed
+
+						-> this page includes
+							-> a left pane for displaying and selecting directories/file (indicating applied rule_sets)
+
+							-> a center pane for displaying selected files 
+						
+							-> a bottom left pane for diplaying created rule sets and options such as create rule_set, delete rule_set, show rule_set info/selected paths
+							-> also indicate rule set priorities for selected files/directories 
+							
+							-> a bottom center pane for displaying rule_set options such as attribute selection, target innerHTML, target outterHTML (with zoom out)
+								-> set rule for attribute (including: elementID equals(*), always table y column x, other row column innerHTML must equal (*)
+									-> set auto_html_check (check for unique element identifier{report error} ), ...) 
+
+
+						-> new rule sets can be created when a directory/file is selected
+							-> directory rule sets are based on:	-> the path/name
+												-> contained file names
+												-> the existence of elements in the contents of its files
+							
+							-> file rule sets can be based on :	-> the path/name
+												-> existence of elements in the files (including element_ids, classes, ...)
+												-> adjacent table column values
+											
+								*******multiple entries can be scrapped from a contained table*******
+
+				******************************** the rule_set must make an indication if there are multiple entires per file ********************************
+
+						-> a rule set created within a file sets that file to contain the rule set
+							-> prompt to make this rule set the top priority (if others are set)
+
+						-> each file/directory to be checked for entries must be selected
+							-> can select whole directory, the rule_set applied to a directory will work recursively where possible
+
+
+					-> the scraping phase iterates accross the list of files/directories specified in the rule_sets
+						-> each directory rule set is applied recursively and by priority, continuing if met
+
+						-> each file rule set is applied by priority
+							
+							-> the required attributes are checked first as they must be met
+
+							-> new entries are speicifed either per file and multiple per file (in the case of table or many similar elements)
+								
+								-> for single entries, "unique element identifiers" or "table relations" are checked for each attribute
+	
+								-> for multiple entries, table/element existence is checked and iterated through
+
+						-> pages with no matches are logged and later displayed
+
+						-> pages with conflicting rules are logged and later displayed					
+
+						-> entry tables are constructed, and are passed along when all required attrbiutes are met
+			
+							-> each rule set designates an entry table
+
+						-> duplicate entries are matched between each rule set entry table and displayed
+		
+						-> all entries are diplayed, duplicates are displayed with red and given selectors
+		
+						-> the final entry table is saved, along with any other set data
+
+
+		***************	-If the application IS loaded from server-side
+
+					-> the server may contain the profile database (and set directories)
+
+					-> the server sets login/permissions
+			
+					-> the server may set the attributes/required attributes based on its own database/settings, and attribute types
+			
+					-> the server determines when the parser application pages are displayed
+				
+						-> the application must make requests back to the server for directory lists/files
+
+					-> when the application completes the rule_sets, it passes this back to the server
+
+						-> the scrapping runs server-side
+			
+						-> the server records all errors, and chooses to continue or halt and notify browser
+
+					-> upon scriping complete, the duplicates/errors are presented to the browser
+
+						-> the server checks all final entries against its own database, sending pending changes to the browser
+
+						-> the tables can be archived before a final commit 
+
+							
+
+								
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
