@@ -102,6 +102,12 @@
 
 <script>
 	
+	var visible_iframe;
+
+	var invisible_iframe;
+
+
+
 	var file_iframe = document.getElementById("file_iframe");
 
 	var iframe_source;
@@ -185,6 +191,111 @@
 
 	function setElementBackgroundColor(element, color) {
 		element.style.backgroundColor = color;
+	}
+
+	function DetermineUniqueAttributes(element, searchTree) {
+
+		var reducedSearchTree = searchTree; 
+
+		var elementAttributes = element.attributes;
+		var attributeValue;
+
+		var elementTagName = element.tagName;
+
+
+		var attributeTypeArray = Array;
+
+		var uniqueAttributesArray = Array;
+
+		var arrayIndex;
+
+		var returnArray;
+
+		//if there is id, just use this really...
+		if( (attributeValue= elementAttributes.match("id") )) {
+			attributeTypeArray.push("id");
+			uniqueAttributesArray.push("id");
+
+			arrayIndex = elementAttributes.indexOf("id");
+
+			if (arrayIndex > -1) {
+   				elementAttributes.splice(arrayIndex, 1);
+			}
+
+			if((reducedSearchTree = reducedSearchTree.getElementById(attributeValue)).length == 1)  {
+			
+				uniqueAttributesArray.push("id");
+				returnArray.push(uniqueAttributesArray);
+				return returnArray;
+			}
+		}
+		if( (attributeValue= elementAttributes.match("class") )) {
+			attributeTypeArray.push("class");
+
+			arrayIndex = elementAttributes.indexOf("class");
+			if (arrayIndex > -1) {
+   				elementAttributes.splice(arrayIndex, 1);
+			}
+
+			if((reducedSearchTree = reducedSearchTree.getElementsByClassName(attributeValue)).length == 1) {
+			
+				uniqueAttributesArray.push("className");
+				returnArray.push(uniqueAttributesArray);
+				return returnArray;
+			}
+		}
+		attributeTypeArray.push("tagName");
+		if((reducedSearchTree = reducedSearchTree.getElementsByTagName(elementTagName)).length == 1) {
+			returnArray.push(attributeTypeArray);
+			return returnArray;
+		}
+		
+		var tempSearchTree = Array;
+
+		elementAttributes.forEach(function(attributeType) {
+			attributeTypeArray.push("tagName");
+
+
+			reducedSearchTree.forEach(function(checkingElement, index, reducedTree) {
+				if(checkingElement.getAttribute(attributeType) != null) {
+					if(checkingElement.getAttribute(attributeType) == element.getAttribute(attributeType)) {
+						tempSearchTree.push(checkingElement);
+					}
+					//do not add if the attribute does not match
+				}
+				//do not add if it doesnt have the attribute
+			});
+			reducedSearchTree = tempSearchTree;
+			tempSearchTree = Array;
+			if(reducedSearchTree.length == 1) {
+
+				returnArray.push(attributeTypeArray);
+				return returnArray;
+			}
+			//else more than one, move to next attribute type
+			
+		});
+		//if got here there is more that needs to be done
+		//run determine unique attributes on the parent
+		if(element.parentNode == searchTree) {
+			//well there is no unique
+			returnArray.push("THERE IS NO UNIQUE");
+			returnArray.push(attributeTypeArray);
+			return returnArray;
+		}
+
+		else{
+			returnArray = DetermineUniqueAttributes(element.parentNode, searchTree);
+			returnArray.push(attributeTypeArray);
+			return returnArray;
+		}
+	}
+
+//CURRENT SO FAR
+	function ClickedIframeElement(element) {
+		//need to determine what property to use to identify
+
+
 	}
 
 	function onClickedIframeElement(element) {
