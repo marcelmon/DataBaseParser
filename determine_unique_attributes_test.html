@@ -51,38 +51,64 @@
 		var searchTreeTemp = Array;
 
 		//will start by identifying the parent
-		uniqueAttributes.forEach(function(elementAttributeValue, elementAttributeType) {
-			if(elementAttributesToMatch.length==1) {
-				if(elementAttributeType == "id") {
-					searchTreeTemp = iframe.getElementById(elementAttributeValue);
-				}
-				else{
 
-				}
-			}
-		});
+		//no good check what arrays are accessed
+		// uniqueAttributes.forEach(function(elementAttributeValue, elementAttributeType) {
+		// 	if(elementAttributesToMatch.length==1) {
+		// 		if(elementAttributeType == "id") {
+		// 			searchTreeTemp = iframe_doc.getElementById(elementAttributeValue);
+		// 		}
+		// 		else{
 
-		var currentMatch;
+		// 		}
+		// 	}
+		// });
+
+		var currentMatch = null;
 
 		//is the list of children
+
+		var currentParentMatches;
 
 		var currentMatchList;
 
 		var currentSearchList;
 
-		var parentTree = iframe;
+		var documentTree = iframe_doc;
 
-		uniqueAttributes.forEach(function(matchAttributesList) {
+
+		var tempMatchList;
+
+		var tempMatch;
+
+
+		//for each array in unique attributes
+			//for the first attribute, build list of all elements with the attribute -> will be one
+			//for each of its children, check each child to match all attributes
+										//build list of all children that match
+										//for each of their children do the same with the next set of rules
+											//repeat until reached the lowest level and all match
+
+			//required to set rule for tables, if the nearest identifier is a table, the element can be be row/col #
+
+
+		uniqueAttributes.forEach(function(matchAttributesList, matchAttributesIndex) {
+			if(matchAttributesIndex == 0) {
+
+			}
 
 			matchAttributesList.forEach(function(attributeValue, attributeType) {
 
 				if(attributeType == "id") {
-					currentMatch = parentTree.getElementById(attributeValue);
+					currentMatch = documentTree.getElementById(attributeValue);
 				}
 				else{
 					if(attributeType == "class") {
-						currentMatchList = parentTree.getElementsByClassName(attributeValue);
-						if(currentMatchList.length == 1) {
+						tempMatchList = documentTree.getElementsByClassName(attributeValue);
+						if(tempMatchList.length == 1) {
+							currentMatch = tempMatchList;
+						}
+						else{
 
 						}
 					}
@@ -97,13 +123,13 @@
 				matchAttributesList
 
 				if(matchAttributesList[0][0] == "id") {
-					currentMatch = iframe.getElementById(matchAttributesList[0][1]);
+					currentMatch = iframe_doc.getElementById(matchAttributesList[0][1]);
 				}
 				else if(matchAttributesList[0][0] == "class") {
-					currentMatch = iframe.getElementsByClassName(matchAttributesList[0][1]);
+					currentMatch = iframe_doc.getElementsByClassName(matchAttributesList[0][1]);
 				}
 				else if(matchAttributesList[0][0] == "class") {
-					currentMatch = iframe.getElementsByClassName(matchAttributesList[0][1]);
+					currentMatch = iframe_doc.getElementsByClassName(matchAttributesList[0][1]);
 				}
 			}
 		});
@@ -113,7 +139,7 @@
 		uniqueAttributes.forEach(function(elementAttributeValue, elementAttributeType) {
 			if(elementAttributesToMatch.length==1) {
 				if(elementAttributeType == "id") {
-					searchTreeTemp = iframe.getElementById(elementAttributeValue);
+					searchTreeTemp = iframe_doc.getElementById(elementAttributeValue);
 				}
 				else{
 					
