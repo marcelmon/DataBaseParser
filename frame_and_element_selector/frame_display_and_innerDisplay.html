@@ -1,0 +1,810 @@
+<html>
+
+
+
+<iframe id="test_1_frame" width="700px" height="700px" src="index.html" onLoad="iframeLoaded()">
+</iframe>
+<div id="box_display">
+</div>
+
+<div id="inner_display">
+	</div>
+
+<textarea id="textArea" width="700px" height="40px">
+</textarea>
+</html>
+
+<script>
+
+	// the display shows the clicked element in the iframe
+		//the display has 3 features 	-> select inner html to set attribute
+		//								-> zoom in (click element to zoom) -> only if has children
+		//								-> zoom out 
+
+	// the inner html display shows the selected inner html from the display
+		// can set attribute to match to vale
+		// can set as identifier for attribute match
+
+
+	/*
+		
+	When an iframe element is clicked 	-> store the clicked iframe_element
+										-> set the inner html of display to the iframe_element.outterHTML
+										-> 
+
+	*/
+
+
+	function iframe_interface(iframe_element) {
+
+		this.iframe_node = iframe_element;
+
+		this.iframe_doc = iframe_element.document;
+
+		this.currentMouseOverElement = null;
+
+		this.mouseoverFunc = function(e){
+
+			var theEvent = e || this.iframe_node.event;
+			var target = theEvent.target || theEvent.srcElement;
+
+			if(target == this.currentMouseOverElement) {
+				return;
+			}
+
+			this.currentMouseOverElement = target;
+			target.onclick = function() { this.elementClicked(target); };
+
+			target.onmouseout = function() {
+
+				target.onclick = null;
+				target.onmouseout = null;
+			};
+		};
+
+
+		//this is set when STATE=='select element'
+		//gather the element info and pass to the display, alowing for mapping back
+		this.elementClicked = function(theTarget) {
+
+			var theTargetTag = theTarget.tagName;
+
+			switch(tagName) {
+				case "td"|"tr"|"table":
+
+					while(theTarget.tagName != "table") {
+						theTarget = theTarget.parentNode;
+					}
+
+					
+					
+
+				case "div":
+
+				case default:
+					while(theTarget != "div") {
+						theTarget = theTarget.parentNode;
+					}			
+			}
+
+			current_top_node = theTarget;
+
+			elementMap = new Array();
+			current_id_num = 1;
+
+			element_clone = current_top_node.cloneNode(true);
+			recursivelyAddId_andMap('DISPLAY_ID', element_clone);
+
+			display_interface.new_display(theTarget);
+		}
+
+		this.getParentDisplay = function(display_id) {
+			if(!display_id.match('__DISPLAY_ID__')) {
+				return null;
+			}
+			else{
+				var child_element;
+				if( (child_element = elementMap[display_id]) == null) {
+					return null;
+				}
+
+				if(child_element.tagName == 'table') {
+					return null;
+				}
+				if(child_element.parentNode == this.iframe_node) {
+					return null;
+				}
+
+				current_top_node = child_element.parentNode;
+				elementMap = new Array();
+				current_id_num = 1;
+
+				element_clone = current_top_node.cloneNode(true);
+				recursivelyAddId_andMap('DISPLAY_ID', element_clone);
+
+				display_interface.receive_parent_display(theTarget);
+			}
+		}
+
+		return this;
+	}
+
+	function set_rule_ok() {
+
+	}
+
+	var current_top_node;
+
+	var element_clone;
+	var elementMap;
+	var current_id_num;
+
+	function recursivelyAddId_andMap(id_tag, rootElement) {
+
+		if(rootElement==null || id_tag == null || returnArray.type != Array){
+			return;
+		}
+
+
+		if(rootElement.hasChildNodes()){
+			rootElement.childNodes.forEach(function(childNode) {
+				recursiveAddIdTag(id_tag, childNode);
+			});
+		}
+		rootElement.id.concat("__"+ id_tag +'__'+ current_id_num.toString());
+
+		elementMap[rootElement.id] = rootElement;
+		current_id_num++;
+		return;
+	}
+
+
+	var display_interface = new display_interface(display_element);
+
+
+
+
+
+
+	function display_interface(display_element) {
+
+		this.display_node = display_element;
+
+		this.display_doc = this.display_node.document;
+
+		this.current_zoom;
+
+		this.currentMouseover;
+
+		this.new_display = function(root_element) {
+
+			while(this.display_node.hasChildNodes()) {
+		    	this.display_node.removeChild(this.display_node.lastChild);
+			}
+
+			this.display_node.appendChild(root_element);
+			current_zoom = 0;
+		};
+
+
+		this.receive_parent_display = function(parent_element) {
+
+			while(this.display_node.hasChildNodes()) {
+		    	this.display_node.removeChild(this.display_node.lastChild);
+			}
+
+			this.display_node.appendChild(parent_element);
+			current_zoom++;
+
+		}
+
+		this.display_mouseover = function(e) {
+
+			var theEvent = e || this.displayHead.event;
+			var target = theEvent.target || theEvent.srcElement;
+
+			if(target == this.currentMouseover) {
+				return;
+			}
+
+			this.currentMouseover = target;
+			
+			target.onclick = function() { this.display_element_clicked(target); };
+
+			target.onmouseout = function() {
+
+				target.onclick = null;
+				target.onmouseout = null;
+			};
+		};
+
+		this.zoom_out = function() {
+			DisplayInterface.getParentDisplay(this.display_node.childNodes[0]);
+		}
+
+		this.display_state;
+
+		this.setDisplay_state = function(newState) {
+
+			if(newState == display_state) {
+				return;
+			}
+
+			switch(newState) {
+
+				case "select_value" :
+					this.display_state = "select_value";
+
+
+				case "select_attribute_match":
+					if(this.display_state != "select_value") {
+						return;
+					}
+					this.display_state = "select_attribute_match";
+
+
+				case "select_rule":
+					if(this.display_state != "select_attribute_match") {
+						return;
+					}
+					this.display_state = "select_rule";
+
+
+				case "pending_rule_test":
+					if(this.display_state != "select_rule") {
+						return;
+					}
+					this.display_state = "pending_rule_test";
+
+				case default:
+
+			}
+		}
+
+		var selected_value_element;
+
+		var selected_rule_element;
+
+		this.display_element_clicked = function(element) {
+
+			var element_inner_html;
+
+			if(this.display_state == "select_value") {
+				var root_clone = element.cloneNode(false);
+
+				if(root_clone.innerHTML) {
+					selected_value_element = element;
+					element_inner_html = root_clone.innerHTML;
+
+					InnerDisplayInterface.receive_new_text(element_inner_html);
+					this.setDisplay_state("select_attribute_match");
+					return;
+				}
+			}
+
+			else if(this.display_state == "select_rule") {
+				if(element.parentNode != selected_value_element) {
+					if(element.parentNode != selected_value_element.parentNode) {
+						if(element != selected_value_element.parentNode) {
+							return;
+						}
+					}
+				}
+				//else is is in fact a proper node to choose
+
+				//must have text though
+				var root_clone = element.cloneNode(false);
+
+				if(root_clone.innerHTML) {
+					selected_value_element = element;
+					element_inner_html = root_clone.innerHTML;
+
+					InnerDisplayInterface.receive_new_text(element_inner_html);
+					this.setDisplay_state("pending_rule_test");
+					return;
+				}
+			}
+		}
+
+		this.ok_rule = function() {
+			if(this.display_state != "pending_rule_test") {
+				return;
+			}
+
+		}
+
+	}
+
+	function inner_display_interface(inner_node) {
+
+		this.inner_display_node = inner_node;
+		this.inner_doc = this.inner_display_node.document;
+
+
+
+		this.receive_new_text = function(newText) {
+			this.inner_display_node.innerHTML = newText; 
+		};
+	}
+
+	function attribute_select_interface() {
+
+		//each atribute has a type
+			//can be, string, date, int, email...
+			//can pass class a rule map *for rule X, use javascript func Y (returns true/false)
+		this.attributesAndTypes = new Array();
+
+		/*
+			rules are:
+
+			(for single entry per page)
+
+				value_only ?? unique_identifier
+				value_and_key ?? value_identifier && key_type ?? key_identifier
+
+	
+				value_only uses the unique id in the iframe -> when possible
+
+				value_and_key:
+					--> for table 	--> table identifier
+									--> row identifier --> may use text indicator (ex: col 1 inner must be occupation)
+									--> column identifier 
+
+					--> for other	--> key_identifier 	--> can be a parent, child, or sibling node to the value
+														-->	can include required text
+									--> value element identifier --> is the relation to the container
+
+			--> the php functions will check the docs to ensure proper format for values
+
+		*/
+
+
+
+		this.attribute_value_rules = new Array();
+
+		this.requiredAttribute = '';
+
+
+		this.set_attributes = function(attributeList, requiredAttribute) {
+			attributeList.forEach(function(type, attribute) {
+				this.attributesAndTypes[attribute] = type;
+				this.attribute_value_rules[attribute] = '';
+
+				this.requiredAttribute = requiredAttribute;
+			});
+		};
+
+
+	}
+
+	
+
+	var iframe = document.getElementById("test_1_frame");
+	var iframe_doc;
+
+	var theDisplay = document.getElementById("box_display");
+
+	var innerDisplay = document.getElementById("inner_display");
+
+	function iframeLoaded() {
+		iframe_doc = iframe.contentDocument;
+		iframe.onmouseover = function(theEvent){mouseoverIFrame(theEvent, iframe_doc);}
+	}
+
+
+	var currentMouseOverIframe;
+
+	function mouseoverIFrame(e, frame) {
+		//should in fact try and show only the bottomost child when mouseover, use the html to select whole table
+		var theEvent = e || frame.event;
+		var target = theEvent.target || theEvent.srcElement;
+
+		if(target == currentMouseOverIframe) {
+			return;
+		}
+
+		currentMouseOverIframe = target;
+
+		target.onclick = function() { IframeElementClicked(target, frame, iframe); };
+
+		target.onmouseout = function() {
+
+			target.onclick = null;
+			target.onmouseout = null;
+		};
+	}
+
+	function IframeElementClicked(element, framedoc, frame_node) {
+
+		var uniqueIfameId = findUniqueIfameId(element, framedoc, frame_node);
+
+		var tagName = element.tagName;
+
+		switch(tagName) {
+			case "p":
+
+			case "div":
+
+			case "span":
+
+			case "td":
+				var parentElement = element.parentNode;
+				while(parentElement.tagName != 'table') {
+					parentElement = element.parentNode;
+				}
+
+			case "tr":
+
+			case "table":
+
+			case "textarea":
+
+			case "a":
+
+			case "head":
+
+			case "header":
+
+			case "body":
+
+			case default:
+		}
+
+		
+
+	}
+
+
+	//the display should be an iframe with no src
+
+	//display interface sets the click function of each element when selected from the iframe
+
+		//this will include functions like zoom out, zoom in, and selection
+
+		//selection ex: previous element must contain...
+					//	use table..
+					//	set display html (use escape html)
+					//	set display view
+
+
+
+	//first need a select function to select the value
+
+	//when the value is selected, a cancel option is available
+
+		//when the value is in a table element, must set the required value in adjacent column
+
+		//when the value is in another element, either set a required text identifier ( ex   !EMAIL!: **** )
+													// set to choose unique html identifier
+
+													//both methods utilize unique-- html identifiers -- with unique text it also check inner html
+
+	//need function to relate a display element to its frame element
+
+	function ElementDisplayInterface(displayFrameHead) {
+
+
+		private this.getIframeElement = function(displayElement){
+
+		}
+
+		var currentFunction;
+
+		var current_on_click;
+
+		this.zoom_click = function() {
+			if(currentMouseOverDisplay == null) {
+
+			}
+			else{
+				if(currentMouseOverDisplay == this.displayHead) {
+
+				}
+				else{
+					var elementClone = currentMouseOverDisplay.cloneNode(true);
+
+					while(this.displayHead.hasChildNodes()) {
+		    			this.displayHead.removeChild(this.displayHead.lastChild);
+					}
+
+					this.displayHead.appendChild(element_clone);
+				}
+			}
+		}
+
+		this.value_selection_click = function(e, display) {
+
+			var theEvent = e || this.displayHead.event;
+			var target = theEvent.target || theEvent.srcElement;
+
+			var iframeElement = this.getIframeElement(target);
+
+			var iframeParent;
+
+			if(target == null){
+
+			}
+
+			else{
+
+				switch (target.tagName) {
+
+					case "td":
+
+						var valueUniqueId = findUniqueIfameId(target, iframe_doc, iframe);
+
+						iframeParent = iframeElement.parentNode;
+
+						while(iframeParent.tagName != 'table') {
+							iframeParent = iframeParent.parentNode;
+
+						}
+						//will have the parent node
+						//need to change the display
+
+
+				}
+
+			}
+			
+
+		}
+
+		this.function = function(newFunction) {
+			if(newFunction != ("zoom_in"|"zoom_out") && (!newFunction.match("selection"))) {
+				return;
+			}
+
+			if(newFunction == "zoom_in") {
+
+				displayFrameHead.onclick = function(e) {
+
+				}
+
+			}
+			else{
+				if(changeFunction.match("selection")){
+					var substr = changeFunction.split("selection");
+					if(substr.length != 1) {
+						return;
+					}
+					switch(substr) {
+						case "match_column":
+							currentFunction = "match_column";
+
+						case "match_unique_html" :
+							currentFunction = "match_current_html";
+
+						case default:
+					}
+				}
+			}
+		}
+
+		this.elementIframeId = null;
+
+		this.displayHead = displayFrameHead;
+
+		this.currentMouseOverDisplay = null;
+
+
+
+		this.setNewElement = function(iframeElement) {
+
+			this.displayHead.onmouseover = null;
+
+
+			var element_clone = iframeElement.cloneNode(true);
+			recursivelyAddIdTag("__DISPLAY_ELEMENT", element_clone);
+			
+			while( this.displayHead.hasChildNodes() ){
+    			this.displayHead.removeChild(this.displayHead.lastChild);
+			}
+
+			this.displayHead.appendChild(element_clone);
+
+			this.displayHead.onmouseover = function(e){ this.mouseover(e); };
+		}
+
+		
+		private this.mouseover = function(e) {
+
+			var theEvent = e || this.displayHead.event;
+			var target = theEvent.target || theEvent.srcElement;
+
+			if(target == this.currentMouseOverDisplay) {
+				return;
+			}
+
+			this.currentMouseOverDisplay = target;
+			
+			this.target.onclick = function() { this.displayElementClicked(target); };
+
+			this.target.onmouseout = function() {
+
+				this.target.onclick = null;
+				this.target.onmouseout = null;
+			};
+		};
+
+		private this.displayElementClicked = function(e) {
+
+		}
+
+	}
+
+	function InnerDisplayInterface (innerDisplayHead) { 
+
+		this.elementInnerHTML = '';
+
+		this.displayHead = innerDisplayHead;
+
+		this.changeInnerDisplay = function(innerString) { 
+			if(typeof innerString != "string") {
+				return;
+			}
+			else {
+				this.displayHead.innerHTML = innerString;
+			}
+		}
+
+	}
+
+
+
+	function recursivelyAddIdTag(id_tag, rootElement) {
+
+		if(rootElement==null || id_tag == null || returnArray.type != Array){
+			return;
+		}
+
+
+		if(rootElement.hasChildNodes()){
+			rootElement.childNodes.forEach(function(childNode) {
+				recursiveAddIdTag(id_tag, childNode);
+			});
+		}
+		rootElement.id.concat("__"+id_tag);
+		return;
+	}
+
+
+
+	function findUniqueIfameId(element, doc, top_node) {
+		var tagName = element.tagName;
+		var allAttributes = element.attributes;
+
+		var matchAttributesList = new Array();
+		var reducedSearchTree = doc.getElementsByTagName(tagName);
+		var tempTree;
+
+		matchAttributesList['tagName'] = tagName;
+
+		if(reducedSearchTree.length = 1) {
+			
+			return matchAttributesList;
+		}
+
+		if(element.id != null) {
+			matchAttributesList['id'] = element.id;
+			return matchAttributesList;
+		}
+
+		else{
+			//do an armotized analysis to determine if is quicker on average to search through all attributes first
+				//or all elements first
+				//probably attributes due to the class function
+				//can in fact pop the class attribute from the array first (if exists) and reduce the search tree immediately
+			allAttributes.forEach(function(elementAttributeType) {
+
+				matchAttributesList[elementAttributeType] = element.getAttribute(elementAttributeType);
+				if(elementAttributeType == 'class') {
+					tempTree = reducedSearchTree.getElementsByClassName(element.getAttribute('class'));
+					reducedSearchTree = tempTree;
+					tempTree = new Array();
+				}
+				else{
+					reducedSearchTree.forEach(function(reducedElement) {
+						if(reducedElement.getAttribute(elementAttributeType) != null) {
+							if(reducedElement.getAttribute(elementAttributeType) == element.getAttribute(elementAttributeType)) {
+								tempTree.push(reducedElement);
+							}
+						}
+					});
+					reducedSearchTree = tempTree;
+					tempTree = new Array();
+				}
+				if(reducedSearchTree.length == 1) {
+					return matchAttributesList;
+				}
+			});
+
+			if(reducedSearchTree.length != 1) {
+				var newList = new Array();
+				
+				if(element.parentNode == top_node) {
+					//really shouldnt
+					newList.push("REACHED_THE_TOP");
+					newList.push(matchAttributesList);
+				}
+				else{
+					newList = findUniqueIfameId(element.parentNode, doc, top_node);
+					newList.push(matchAttributesList);
+				}
+				return newList; 
+			}
+			else{
+				return matchAttributesList;
+			}
+		}
+	}
+	
+	function escapeHtml(text) {
+		var map = {
+		    '&': '&amp;',
+		    '<': '&lt;',
+		    '>': '&gt;',
+		    '"': '&quot;',
+			"'": '&#039;'
+		};
+		return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+	}
+
+
+
+	function DisplayLoaded() {
+		var innerHTML = display.innerHTML;
+		theDisplay.onmouseover = function(theEvent) {
+			onMouseOverInDisplay(theEvent, theDisplay);
+		}
+	}
+
+	function onMouseOverInDisplay(e, display) {
+
+		var theEvent = e || display.event;
+		var target = theEvent.target || theEvent.srcElement;
+		target.onclick = function() { onClickedDisplayElement(target); };
+		target.onmouseout = function(){ target.onclick=null; };
+	}
+
+	function onClickedDisplayElement(displayElement) {
+		if(displayElement == theDisplay) {
+			if(!displayElement.hasChildren()) {
+				innerDisplay.innerHTML = displayElement.innerHTML;
+			}
+		}
+		else {
+			if(displayElement.hasChildren()) {
+		
+			}
+			else{
+
+			}
+		}
+	}
+
+	function setDisplayElement(newSouce, hasChilren, isInner) {
+
+	}
+
+
+	function DisplayElementClicked(element, frameDoc) {
+		//get the root inner html of the clicked element
+		if(element.hasChildren()) {
+			display.innerHTML = element.innerHTML;
+			display.onmouseover = function(e){
+				onMouseOverInDisplay(e, display)
+			};
+		}
+	}
+
+
+
+	function ElementDisplayOnMouseover() {
+
+	}
+
+
+
+	
+</script>
