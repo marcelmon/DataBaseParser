@@ -1,0 +1,17 @@
+****IN JAVASCRIPT/HTML ****
+	
+	finish the frame interfaces:	-> set proper response to states for iframe click and display frame click
+					-> add section in html for attribute slection/rule mapping -> with value concatenation
+					-> ensure call backs for tables are indicating row/cell number
+					-> ensure that elements within wrappers indicate their position when there are no other attributes
+
+
+	finish directories pannel:	-> setup file/directories panel as object interface with proper calls to each frame interface
+					-> add functionality for finalizing rule_sets and selecting files/diectories with calls to notify server
+
+	complete php program:		-> complete parsing program in php using the determined rule format w/ browser call backs
+					-> complete plugin page 
+						-> includes error display, sql functions, and duplicates displays
+					
+		-> values that require a key which lacks unique id within its wrapper should be parsed using the text
+							-> ex: value is sibling of element in div id="a" with text = "b"
