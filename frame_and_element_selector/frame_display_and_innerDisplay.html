@@ -38,6 +38,9 @@
 	function iframe_interface(iframe_element) {
 
 
+		//this function needs to be cleaned up
+		//the id is retured as an array of arrays with the top unique parent first
+		//each array is (key, value) of (attribute, value)
 		function findUniqueIfameId(element) {
 			var tagName = element.tagName;
 			var allAttributes = element.attributes;
@@ -107,13 +110,6 @@
 			}
 		}
 
-
-
-
-
-
-
-
 		this.iframe_node = iframe_element;
 
 		this.iframe_doc = iframe_element.document;
@@ -141,7 +137,9 @@
 
 
 		//this is set when STATE=='select element'
-		//gather the element info and pass to the display, alowing for mapping back
+		//gather the element info and pass to the display interface, alowing for mapping back
+		//create the element map for callbacks and add the incremental display id to each element clone
+		//use the switch:case statement to determine how much of the elements container to pass
 		this.elementClicked = function(theTarget) {
 
 			var theTargetTag = theTarget.tagName;
@@ -152,9 +150,6 @@
 					while(theTarget.tagName != "table") {
 						theTarget = theTarget.parentNode;
 					}
-
-					
-					
 
 				case "div":
 
@@ -175,6 +170,7 @@
 			display_interface.new_display(theTarget);
 		}
 
+		//this is used by the zoom out function, must re map the elements
 		this.getParentDisplay = function(display_id) {
 			if(!display_id.match('__DISPLAY_ID__')) {
 				return null;
@@ -205,6 +201,8 @@
 
 		return this;
 
+
+		//these functions build the identifier strings to find the element within the ifram doc
 		this.getUniqueTableId_String_value_only = function(display_id) {
 			if(!display_id.match('__DISPLAY_ID__')) {
 				return null;
@@ -285,6 +283,8 @@
 	var elementMap;
 	var current_id_num;
 
+	//will want to make the map only accessible from within the iframe object
+	//this function clones all elements, appends a unique id, and maps each id to the element in the iframe
 	function recursivelyAddId_andMap(id_tag, rootElement) {
 
 		if(rootElement==null || id_tag == null || returnArray.type != Array){
@@ -318,12 +318,18 @@
 
 		this.display_doc = this.display_node.document;
 
-		this.current_zoom;
-
+		this.current_zoom=null;
+		this.display_state ='';
 		this.currentMouseover;
 
+		//new display is called when an iframe element is clicked
+		//it sets the parameters back to null, unless currently setting a rule/pending rule o.k
+		//then sets the elements in the display frame to view the new elements and their text
 		this.new_display = function(root_element) {
 
+			if(this.display_state == "select_rule" || this.display_state == "pending_rule_test") {
+				return;
+			}
 			while(this.display_node.hasChildNodes()) {
 		    	this.display_node.removeChild(this.display_node.lastChild);
 			}
@@ -332,7 +338,7 @@
 			current_zoom = 0;
 		};
 
-
+		//this is the callback from zoon out, no - zoom yet
 		this.receive_parent_display = function(parent_element) {
 
 			while(this.display_node.hasChildNodes()) {
@@ -343,6 +349,7 @@
 			current_zoom++;
 
 		}
+
 
 		this.display_mouseover = function(e) {
 
@@ -364,11 +371,13 @@
 			};
 		};
 
+
+		//the any child node of the display node will zoom out to a parent
 		this.zoom_out = function() {
 			DisplayInterface.getParentDisplay(this.display_node.childNodes[0]);
 		}
 
-		this.display_state;
+		
 
 		this.setDisplay_state = function(newState) {
 
@@ -411,11 +420,18 @@
 
 		var selected_rule_element;
 
+
+		//either chooses as value, or as the rule
+
+		//still need to set different possible rules for table
 		this.display_element_clicked = function(element) {
 
 			var element_inner_html;
 
 			if(this.display_state == "select_value") {
+				//must have slected text of an element to set it as the value, display in the inner frame
+				//change the state to allow rule selection/creation
+				//rules can varry depeneding on element type
 				var root_clone = element.cloneNode(false);
 
 				if(root_clone.innerHTML) {
@@ -456,11 +472,15 @@
 			if(this.display_state != "pending_rule_test") {
 				return;
 			}
+			//use the selected value....
+			//make calls to the string builders
 
 		}
 
 	}
 
+	//used just to check correctedness of values
+	//can also display full inner html  escaped chars
 	function inner_display_interface(inner_node) {
 
 		this.inner_display_node = inner_node;
@@ -550,6 +570,7 @@
 			});
 		};
 
+		//have some format checks here
 		this.set_attribute_rule_for_sendback = function(attribute, rule_type, element_type, value_id, key_id, key_text) {
 
 			if(this.attribute_value_rules[attribute] === undefined) {
