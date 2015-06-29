@@ -37,6 +37,83 @@
 
 	function iframe_interface(iframe_element) {
 
+
+		function findUniqueIfameId(element) {
+			var tagName = element.tagName;
+			var allAttributes = element.attributes;
+
+			var matchAttributesList = new Array();
+			var reducedSearchTree = this.iframe_doc.getElementsByTagName(tagName);
+			var tempTree;
+
+			matchAttributesList['tagName'] = tagName;
+
+			if(reducedSearchTree.length = 1) {
+				
+				return matchAttributesList;
+			}
+
+			if(element.id != null) {
+				matchAttributesList['id'] = element.id;
+				return matchAttributesList;
+			}
+
+			else{
+				//do an armotized analysis to determine if is quicker on average to search through all attributes first
+					//or all elements first
+					//probably attributes due to the class function
+					//can in fact pop the class attribute from the array first (if exists) and reduce the search tree immediately
+				allAttributes.forEach(function(elementAttributeType) {
+
+					matchAttributesList[elementAttributeType] = element.getAttribute(elementAttributeType);
+					if(elementAttributeType == 'class') {
+						tempTree = reducedSearchTree.getElementsByClassName(element.getAttribute('class'));
+						reducedSearchTree = tempTree;
+						tempTree = new Array();
+					}
+					else{
+						reducedSearchTree.forEach(function(reducedElement) {
+							if(reducedElement.getAttribute(elementAttributeType) != null) {
+								if(reducedElement.getAttribute(elementAttributeType) == element.getAttribute(elementAttributeType)) {
+									tempTree.push(reducedElement);
+								}
+							}
+						});
+						reducedSearchTree = tempTree;
+						tempTree = new Array();
+					}
+					if(reducedSearchTree.length == 1) {
+						return matchAttributesList;
+					}
+				});
+
+				if(reducedSearchTree.length != 1) {
+					var newList = new Array();
+					
+					if(element.parentNode == this.iframe_node) {
+						//really shouldnt
+						newList.push("REACHED_THE_TOP");
+						newList.push(matchAttributesList);
+					}
+					else{
+						newList = findUniqueIfameId(element.parentNode);
+						newList.push(matchAttributesList);
+					}
+					return newList; 
+				}
+				else{
+					return matchAttributesList;
+				}
+			}
+		}
+
+
+
+
+
+
+
+
 		this.iframe_node = iframe_element;
 
 		this.iframe_doc = iframe_element.document;
@@ -127,11 +204,80 @@
 		}
 
 		return this;
+
+		this.getUniqueTableId_String_value_only = function(display_id) {
+			if(!display_id.match('__DISPLAY_ID__')) {
+				return null;
+			}
+			var tempElement = elementMap[display_id];
+			var column_number = tempElement.cellIndex;
+			var row_number = tempElement.parentNode.rowIndex;
+
+			while(tempElement.tagName != 'table') {
+				tempElement=tempElement.parentNode;
+			}
+
+			var identifier_array = findUniqueIfameId(tempElement);
+
+			if(identifier_array[0] == "REACHED_THE_TOP") {
+				return;
+			}
+
+			var idString = '';
+
+			identifier_arary.forEach(function(node_id_array) {
+				idString.concat("/&&&");
+
+				node_id_array.forEach(function(node_value, node_attribute) {
+					idString.concat(node_attribute);
+					idString.concat("/:::");
+					idString.concat(node_value);
+					idString.concat("/@@@")
+				});
+			});
+			idString.concat("/&&&");
+			idString.concat("column_number:::");
+			idString.concat(column_number.toString());
+
+			idString.concat("/@@@");
+			idString.concat("row_number:::");
+			idString.concat(row_number.toString());
+
+			return idString;
+
+		}
+
+
+
+		this.getUniqueId_String = function(displayId) {
+			if(!display_id.match('__DISPLAY_ID__')) {
+				return null;
+			}
+			else{
+				var identifier_arary = findUniqueIfameId(elementMap[displayId]);
+				if(identifier_array[0] == "REACHED_THE_TOP") {
+					return;
+				}
+
+				var idString = '';
+
+				identifier_arary.forEach(function(node_id_array) {
+					idString.concat("/&&&");
+
+					node_id_array.forEach(function(node_value, node_attribute) {
+						idString.concat(node_attribute);
+						idString.concat("/:::");
+						idString.concat(node_value);
+						idString.concat("/@@@")
+					});
+				});
+
+				return idString;
+			}
+		}
 	}
 
-	function set_rule_ok() {
-
-	}
+	
 
 	var current_top_node;
 
@@ -356,8 +502,38 @@
 
 			--> the php functions will check the docs to ensure proper format for values
 
+		identifiers :  /&&& parent_div::: /@@@ parent_id::: /@@@ parent_attribute_1::: /@@@ ... /&&& ... /&&& element_div::: /@@@ ... /%%% required text
+
+			
+
 		*/
 
+		function create_rule_value_only_NOT_table(valueDisplayElementId) {
+			var returnString = 'value_only_not_table';
+			returnString.concat(IframInterface.getUniqueIdString(valueDisplayElementId));
+			return returnString;
+		}
+
+		function create_rule_value_only_table(valueDisplayElementId) {
+			var returnString = "value_only_table";
+			returnString.concat(IframInterface.getUniqueTableId_String_value_only);
+			return returnString;
+		}
+
+		function create_rule_value_and_key_table(table_display_element_id, required_column_with_text, required_text, column) {
+			var returnString = "key_and_value_table";
+			returnString = getUniqueId_String(table_display_element_id);
+			returnString.concat("/%%%required_column:::");
+			returnString.concat(required_row_with_text.toString());
+			returnString.concat("/%%%required_text:::");
+			returnString.concat(required_text);
+			returnString.concat("/%%%column_with_value:::");
+			returnString.concat(column.toString());
+
+			return returnString;
+
+
+		}
 
 
 		this.attribute_value_rules = new Array();
@@ -373,6 +549,64 @@
 				this.requiredAttribute = requiredAttribute;
 			});
 		};
+
+		this.set_attribute_rule_for_sendback = function(attribute, rule_type, element_type, value_id, key_id, key_text) {
+
+			if(this.attribute_value_rules[attribute] === undefined) {
+				return null;
+			}
+			if(!this.attribute_value_rules[attribute]=='') {
+				return null;
+			}
+
+			if(rule_type === "value_only") {
+
+				if(element_type === "table") {
+					//value_rule requires table identifier , col num, row num
+					var value_indicators = value_id.split("/%%%");
+
+					var indicator_pair;
+
+					var has_table_id = false;
+					var has_col_number = false;
+					var has_row_number = false;
+
+					value_indicators.forEach(function(indicator) {
+						indicator_pair = indicator.split("/&&&");
+						if(indicator_pair[0] == "table_identifier"){
+							has_table_id = true;
+						}
+						else if(indicator_pair[0] == "column_number"){
+							has_col_number = true;
+						}
+						else if(indicator_pair[0] == "table_identifier"){
+							has_row_number = true;
+						}
+					});
+					if(!has_table_id || !has_col_number || !has_row_number) {
+						return;
+					}
+
+					else {
+						this.attribute_value_rules[attribute] = "single_element___table_" + value_id;
+						return;
+					}
+				}
+
+				else {
+					this.attribute_value_rules[attribute] = "single_element___other_" + value_id;
+					return;
+				}
+			}
+
+			if(rule_type === "value_and_key_no_text") {
+				//mostly wouldnt happen
+			}
+
+			if(rule_type === "value_and_key_requires_text") {
+
+			}
+		}
 
 
 	}
