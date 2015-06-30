@@ -1,0 +1,210 @@
+<script>
+
+
+
+	function Router() {
+
+		this.server_info = new Array();
+
+		this.attribute_info = new Array();
+
+
+		this.current_rule_set = null;
+
+		this.rule_sets = new Array();
+
+
+
+		this.iframe_interface = null;
+
+		this.display_interface = null;
+
+		this.attribute_selector_interface = null;
+
+		this.directory_display_interface = null;
+
+
+		this.state = 'initializing';
+
+		this.is_server = null;
+
+		this.set_is_server = function(is_server) {
+			if(is_server !== (false|true)) {
+				return null;
+			}
+			else{
+				this.is_server = is_server;
+			}
+		}
+
+
+		this.set_server_info = function(host_name, user_id, scraper_profile_path) {
+
+			if(this,is_server != true) {
+				return false;
+			}
+			//use URI.js for this
+			if(host_name != URI){
+				return false;
+			}
+			if(scraper_profile_path != PATH_FORMAT) {
+				return false;
+			}
+
+			this.server_info['host_name'] = host_name;
+			this.server_info['scraper_profile_path'] = scraper_profile_path;
+			this.server_info['user_id'] = user_id;
+			return true;
+		}
+
+
+		this.set_attribute_info = function(attributes_and_rules) {
+
+			attributes_and_rules.forEach(function(type, attribute) {
+				if(type != ('STRING'|'DATE'|'INTEGER'|'DOUBLE'|'EMAIL'|'POSTALCODE'|'STREETADDRESS'|'CITY'|'COUNTRY'|'STATEPROVINCE'|'ADDRESSMIXED'|'PHONENUMBER')){
+
+				}
+				else{
+					this.attribute_info[attribute] = type;
+				}
+			});
+		}
+
+
+
+		//ADD STATES SUCH AS INITIALIZING AND WHATEVS 
+		this.set_state = function(newState) {
+
+			if(newState == display_state) {
+				return;
+			}
+
+			switch(newState) {
+
+				case "select_value" :
+					this.state = "select_value";
+
+
+				case "select_attribute_match":
+					if(this.state != "select_value") {
+						return;
+					}
+					this.state = "select_attribute_match";
+
+
+				case "select_rule":
+					if(this.state != "select_attribute_match") {
+						return;
+					}
+					this.state = "select_rule";
+
+
+				case "pending_rule_test":
+					if(this.state != "select_rule") {
+						return;
+					}
+					this.state = "pending_rule_test";
+
+				case default:
+			}
+		}
+
+
+
+
+		this.set_iframe_interface = function (iframe_interface) {
+			this.iframe_interface = iframe_interface;
+		}
+		
+		this.set_display_interface = function (display_interface) {
+				this.display_interface = display_interface;
+		}
+
+		this.set_attribute_select_interface = function (attribute_select_interface) {
+				this.attribute_select_interface = attribute_select_interface;
+		}
+
+		this.set_directory_display_interface = function (directory_display_interface) {
+				this.directory_display_interface = directory_display_interface;
+		}
+
+
+
+
+		this.send_directory_contents_request = function (dir_path) {
+
+			var request_string = "scraper_directories.php/?user_id=" +this.server_info['user_id'];
+			request_string.concat("?scraper_profile_path=" + this.server_info['scraper_profile_path']);
+
+			request_string.concat("?dir_path=" + dir_path);
+
+			var call_back = function(responseText) {
+				this.directory_display_interface.send_directory_contents(responseText);
+			}
+
+			this.send_and_receive_data_to_server(request_string, call_back);
+		}
+
+
+		//PROBS NOT NEEDED!!!!
+		//although consider setting the iframe src as scraper_file.php and reload with POST!!!! <<< MUCH SAFER
+		this.send_file_contents_request = function (file_path) {
+			var request_string = "scraper_directories.php/?user_id=" +this.server_info['user_id'];
+			request_string.concat("&scraper_profile_path=" + this.server_info['scraper_profile_path']);
+
+			request_string.concat("&file_path=" + file_path);
+
+			var call_back = function(responseText) {
+				//possibly does not need because you can just set the src of ifram (is same origin)
+				this.iframe_interface.send_file_contents(responseText);
+			}
+
+			this.send_and_receive_data_to_server(request_string, call_back);
+		}
+
+
+
+		this.send_rule_sets = function() {
+
+			var rule_sets_string='';
+			this.rule_sets.forEach(function(rule_set_array, rule_set_name) {
+				rule_sets_string.concat(this.build_rule_set_string(rule_set_array, rule_set_name));
+			});
+
+			var send_string = "rule_sets.php/?user_id="  +this.server_info['user_id'];
+			request_string.concat("&scraper_profile_path=" + this.server_info['scraper_profile_path']);
+			request_string.concat("&rule_sets_strings=" + rule_sets_string);
+
+			//this call should change the page in the php
+			this.send_and_receive_data_to_server(request_string, null);
+
+		}
+
+
+
+		this.build_rule_set_string = function(rule_set_array, rule_set_name) {
+			//set according to the format in frameDisplay_and_innerDisplay
+		}
+
+
+
+		this.send_and_receive_data_to_server = function(requestString, call_back_function) {
+
+			var xmlhttp = new XMLHttpRequest();
+
+			if(call_back_function != null) {
+				xmlhttp.onreadystatechange=function() {
+					if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+						call_back_function(xmlhttp.responseText);
+					}
+				}
+			}
+			
+			xmlhttp.open("POST", requestString, true);
+			xmlhttp.send();
+		}
+
+		
+
+
+</script>

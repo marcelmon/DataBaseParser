@@ -9,6 +9,7 @@
 	finish directories pannel:	-> setup file/directories panel as object interface with proper calls to each frame interface
 					-> add functionality for finalizing rule_sets and selecting files/diectories with calls to notify server
 
+****IN PHP******
 	complete php program:		-> complete parsing program in php using the determined rule format w/ browser call backs
 					-> complete plugin page 
 						-> includes error display, sql functions, and duplicates displays
