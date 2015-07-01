@@ -403,10 +403,28 @@
 			}
 
 			else{
-				//requires a cancel
+				//requires a cancel to be able to click the iframe, (cancel the att set, or other)
 			}
 		};
 
+
+//HERE ARE THE ELEMENT DIPLAY FUNCTIONS
+
+		this.set_value_element = function(element_id) {
+
+			if(this.state != 'set_value') {
+				return false;
+			}
+			else if(this.current_element_id == element_id) {
+				return false;
+			}
+			var value_element = this.iframe_interface.map['element_id'];
+
+			this.current_element_id = element_id;
+			this.attribute_select_interface.notify_value(element_id, innerHTML);
+			this.state = 'select_attribute_match';
+			return true;
+		}
 
 //HERE ARE THE INTERAL SERVER REQUEST FUNCTIONS
 		this.send_directory_contents_request = function (dir_path) {
@@ -419,7 +437,7 @@
 			var call_back = function(responseText) {
 				this.directory_display_interface.send_directory_contents(responseText);
 			}
-
+////////////////////////////////////?HERE///////////////////////////////////
 			this.send_and_receive_data_to_server(request_string, call_back);
 		}
 
