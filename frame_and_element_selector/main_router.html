@@ -26,6 +26,8 @@
 
 		this.state = 'initializing';
 
+
+
 		this.is_server = null;
 
 		this.set_is_server = function(is_server) {
@@ -81,6 +83,12 @@
 
 			switch(newState) {
 
+				case "initializing":
+					//set initialy when the interface objects have not yet been set
+ 
+				case "select file":
+
+
 				case "select_value" :
 					this.state = "select_value";
 
@@ -126,11 +134,281 @@
 
 		this.set_directory_display_interface = function (directory_display_interface) {
 				this.directory_display_interface = directory_display_interface;
-		}
+		};
+
+
+//HERE ARE THE RULE_SET MANIPULATION FUNCTIONS
+		this.change_curent_rule_set = function(rule_set) {
+
+			if(!this.rule_sets[rule_set]) {
+				return false;
+			}
+			else{
+				//probably some redundancy as the rule set arrays are object and only pointers are saved
+					//no need for the equates
+				if(this.current_rule_set != null) {
+					this.rule_sets[this.current_rule_set] = this.current_rule_set;
+				}
+				this.current_rule_set = this.rule_sets[rule_set];
+
+				this.notify_rule_set_changed();
+				return true;
+			}
+		};
+
+
+		this.new_rule_set = function(new_rule_set) {
+			if(this.rule_sets[new_rule_set]) {
+				return false;
+			}
+			else{
+				if(this.current_rule_set != null) {
+					this.rule_sets[this.current_rule_set] = this.current_rule_set;
+				}
+				//change this to a rule set object!!!!!!
+				this.rule_sets[new_rule_set] = new Array();
+				this.current_rule_set = this.rule_sets[new_rule_set];
+
+				this.notify_rule_set_changed();
+				return true;
+			}
+		};
+
+
+		this.notify_rule_set_changed = function() {
+
+			//notify the file/dir display
+			//notify the iframe display
+			//notify the attribute select interface
+		};
+
+
+		//REQUIRE TO CHECK THAT dir_path IS PROPER 
+		this.add_dir_to_rule_set = function(dir_path) {
+
+			//a dir is indexed by '/dir_name'
+			//a file is indexed by 'file_name'
+
+			var individualDirs = dir_path.split('/');
+
+			var lastDir = individualDirs.slice(-1);
+			individualDirs.pop();
+
+			var currentIndex =  this.current_rule_set['included_dirs'];
+
+			individualDirs.forEach(function(dir_name) {
+				if( currentIndex['/' + dir_name] != undefined) {
+					if(currentIndex['/' + dir_name] == '##ALL') {
+						return;
+					}
+					currentIndex = currentIndex['/' + dir_name];
+				}
+				else{
+					currentIndex['/' + dir_name] = new Array();
+					currentIndex = currentIndex['/' + dir_name];
+				}
+			});
+			currentIndex['/' + lastDir] = '##ALL';
+			this.notify_rule_set_changed();
+
+		};
 
 
 
+		this.add_file_to_rule_set = function(file_path) {
 
+			//the last one is a file
+			var individualDirs = dir_path.split('/');
+			var file_name = individualDirs.slice(-1);
+
+			individualDirs.pop();
+
+			individualDirs.forEach(function(dir_name) {
+				if( currentIndex['/' + dir_name] != undefined) {
+					if(currentIndex['/' + dir_name] == '##ALL') {
+						return;
+					}
+					currentIndex = currentIndex['/' + dir_name];
+				}
+				else{
+					currentIndex['/' + dir_name] = new Array();
+					currentIndex = currentIndex['/' + dir_name];
+				}
+			});
+			currentIndex[file_name] = '##INCLUDE';
+			this.notify_rule_set_changed();
+
+		};
+
+
+		this.remove_dir_from_rule_set = function(dir_path) {
+
+			var individualDirs = dir_path.split('/');
+
+			var lastDir = individualDirs.slice(-1);
+			individualDirs.pop();
+
+			individualDirs.forEach(function(dir_name) {
+				if( currentIndex['/' + dir_name] != undefined) {
+					currentIndex = currentIndex['/' + dir_name];
+				}
+				else{
+					//if its undefined then done
+					return;
+				}
+			});
+
+			if(currentIndex['/' + lastDir] != undefined) {
+				delete currentIndex['/' + lastDir];
+			}
+			this.notify_rule_set_changed();
+		};
+
+
+		this.remove_file_from_rule_set = function(file_path) {
+
+			var individualDirs = file_path.split('/');
+			var file_name = individualDirs.slice(-1);
+
+			individualDirs.pop();
+
+			individualDirs.forEach(function(dir_name) {
+				if( currentIndex['/' + dir_name] != undefined) {
+
+					currentIndex = currentIndex['/' + dir_name];
+				}
+				else{
+					//if its undefined then done
+					return;
+				}
+			});
+			if(currentIndex[file_name] != undefined) {
+				delete currentIndex[file_name];
+			}
+			this.notify_rule_set_changed();	
+		};
+
+
+
+		this.test_file_included = function (file_path) {
+
+			//the last one is a file
+			var individualDirs = file_path.split('/');
+			var file_name = individualDirs.slice(-1);
+
+			individualDirs.pop();
+
+			individualDirs.forEach(function(dir_name) {
+				if( currentIndex['/' + dir_name] != undefined) {
+					if(currentIndex['/' + dir_name] == '##ALL') {
+						return true;
+					}
+					currentIndex = currentIndex['/' + dir_name];
+				}
+				else{
+					return false;
+				}
+			});
+			if(currentIndex[file_name] != undefined) {
+				return true;
+			}
+			else{
+				return false;
+			}
+		};
+
+		this.test_dir_included = function (dir_path) {
+			//the last one is a file
+			var individualDirs = file_path.split('/');
+			var lastDir = individualDirs.slice(-1);
+
+			individualDirs.pop();
+
+			individualDirs.forEach(function(dir_name) {
+				if( currentIndex['/' + dir_name] != undefined) {
+					if(currentIndex['/' + dir_name] == '##ALL') {
+						return true;
+					}
+					currentIndex = currentIndex['/' + dir_name];
+				}
+				else{
+					return false;
+				}
+			});
+			if(currentIndex[lastDir] != undefined) {
+				return true;
+			}
+			else{
+				return false;
+			}
+
+		};
+
+//HERE ARE THE DIRECTORY/FILE DISPLAY INTRFACE FUNCTIONS --> incomming
+	//SENT FROM THE DISPLAY WHEN EITHER REQUIRES DIR REQUEST OR NEEDS TO SET INCLUDE/EXCLUDE
+		this.directory_clicked = function(dir_path) {
+			if(this.state = ("select_file" | "select_element" | "select_value")) {
+				this.send_directory_contents_request(dir_path);
+			}
+			else if(this.state == "select_included_files_and_dirs") {
+				if(this.test_dir_included(dir_path) == false) {
+					this.add_dir_to_rule_set(dir_path);
+				}
+				else{
+					this.remove_dir_from_rule_set(dir_path);
+				}
+			}
+			else{
+				//do nothing
+			}
+		};
+
+		this.file_clicked = function(file_path) {
+			if(this.state = "select_file" | "select_element" | "select_value") {
+				this.send_file_contents_request(file_path);
+			}
+			else if(this.state == "select_included_files_and_dirs") {
+				if(this.test_file_included(file_path) == false) {
+					this.add_file_to_rule_set(file_path);
+				}
+				else{
+					this.remove_file_from_rule_set(file_path);
+				}
+			}
+			else{
+				//do nothing
+			}
+		};
+
+//HERE ARE THE IFRAME DISPLAY INTERFACE FUNCTIONS --> incomming
+	//the top element of the clone is a single element
+
+		var current_element_id;
+
+		var current_value_element_id;
+
+		var current_attribute_element_id;
+
+		this.iframe_element_clicked = function(element_clone) {
+
+			if(this.state == "select_element" | "select_value") {
+				current_element_id = element_clone.id;
+				this.display_interface.new_display(element_clone);
+
+
+
+//MUST CREATE THIS FUNCTION
+
+				this.notify_display_changed();
+			}
+
+			else{
+				//requires a cancel
+			}
+		};
+
+
+//HERE ARE THE INTERAL SERVER REQUEST FUNCTIONS
 		this.send_directory_contents_request = function (dir_path) {
 
 			var request_string = "scraper_directories.php/?user_id=" +this.server_info['user_id'];
