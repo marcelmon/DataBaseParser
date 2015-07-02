@@ -1,35 +1,15 @@
 <script>
-
-
-
 	function Router() {
-
 		this.server_info = new Array();
-
 		this.attribute_info = new Array();
-
-
 		this.current_rule_set = null;
-
 		this.rule_sets = new Array();
-
-
-
 		this.iframe_interface = null;
-
 		this.display_interface = null;
-
 		this.attribute_selector_interface = null;
-
 		this.directory_display_interface = null;
-
-
 		this.state = 'initializing';
-
-
-
 		this.is_server = null;
-
 		this.set_is_server = function(is_server) {
 			if(is_server !== (false|true)) {
 				return null;
@@ -38,10 +18,7 @@
 				this.is_server = is_server;
 			}
 		}
-
-
 		this.set_server_info = function(host_name, user_id, scraper_profile_path) {
-
 			if(this,is_server != true) {
 				return false;
 			}
@@ -52,46 +29,41 @@
 			if(scraper_profile_path != PATH_FORMAT) {
 				return false;
 			}
-
 			this.server_info['host_name'] = host_name;
 			this.server_info['scraper_profile_path'] = scraper_profile_path;
 			this.server_info['user_id'] = user_id;
 			return true;
 		}
-
-
 		this.set_attribute_info = function(attributes_and_rules) {
-
 			attributes_and_rules.forEach(function(type, attribute) {
 				if(type != ('STRING'|'DATE'|'INTEGER'|'DOUBLE'|'EMAIL'|'POSTALCODE'|'STREETADDRESS'|'CITY'|'COUNTRY'|'STATEPROVINCE'|'ADDRESSMIXED'|'PHONENUMBER')){
-
 				}
 				else{
 					this.attribute_info[attribute] = type;
 				}
 			});
 		}
-
-
-
 		//ADD STATES SUCH AS INITIALIZING AND WHATEVS 
 		this.set_state = function(newState) {
-
 			if(newState == display_state) {
 				return;
 			}
-
 			switch(newState) {
-
 				case "initializing":
 					//set initialy when the interface objects have not yet been set
  
 				case "select file":
 
 
+				case "awaiting directory data":
+
+
+				case "awaiting file data":
+
+				case "select_element":
+
 				case "select_value" :
 					this.state = "select_value";
-
 
 				case "select_attribute_match":
 					if(this.state != "select_value") {
@@ -99,13 +71,11 @@
 					}
 					this.state = "select_attribute_match";
 
-
 				case "select_rule":
 					if(this.state != "select_attribute_match") {
 						return;
 					}
 					this.state = "select_rule";
-
 
 				case "pending_rule_test":
 					if(this.state != "select_rule") {
@@ -113,13 +83,14 @@
 					}
 					this.state = "pending_rule_test";
 
+
+				case "select_included_files_and_dirs":
+
+				case "sent_rule_sets":
+
 				case default:
 			}
 		}
-
-
-
-
 		this.set_iframe_interface = function (iframe_interface) {
 			this.iframe_interface = iframe_interface;
 		}
@@ -127,19 +98,14 @@
 		this.set_display_interface = function (display_interface) {
 				this.display_interface = display_interface;
 		}
-
 		this.set_attribute_select_interface = function (attribute_select_interface) {
 				this.attribute_select_interface = attribute_select_interface;
 		}
-
 		this.set_directory_display_interface = function (directory_display_interface) {
 				this.directory_display_interface = directory_display_interface;
 		};
-
-
 //HERE ARE THE RULE_SET MANIPULATION FUNCTIONS
 		this.change_curent_rule_set = function(rule_set) {
-
 			if(!this.rule_sets[rule_set]) {
 				return false;
 			}
@@ -150,13 +116,10 @@
 					this.rule_sets[this.current_rule_set] = this.current_rule_set;
 				}
 				this.current_rule_set = this.rule_sets[rule_set];
-
 				this.notify_rule_set_changed();
 				return true;
 			}
 		};
-
-
 		this.new_rule_set = function(new_rule_set) {
 			if(this.rule_sets[new_rule_set]) {
 				return false;
@@ -168,34 +131,23 @@
 				//change this to a rule set object!!!!!!
 				this.rule_sets[new_rule_set] = new Array();
 				this.current_rule_set = this.rule_sets[new_rule_set];
-
 				this.notify_rule_set_changed();
 				return true;
 			}
 		};
-
-
 		this.notify_rule_set_changed = function() {
-
 			//notify the file/dir display
 			//notify the iframe display
 			//notify the attribute select interface
 		};
-
-
 		//REQUIRE TO CHECK THAT dir_path IS PROPER 
 		this.add_dir_to_rule_set = function(dir_path) {
-
 			//a dir is indexed by '/dir_name'
 			//a file is indexed by 'file_name'
-
 			var individualDirs = dir_path.split('/');
-
 			var lastDir = individualDirs.slice(-1);
 			individualDirs.pop();
-
 			var currentIndex =  this.current_rule_set['included_dirs'];
-
 			individualDirs.forEach(function(dir_name) {
 				if( currentIndex['/' + dir_name] != undefined) {
 					if(currentIndex['/' + dir_name] == '##ALL') {
@@ -210,19 +162,12 @@
 			});
 			currentIndex['/' + lastDir] = '##ALL';
 			this.notify_rule_set_changed();
-
 		};
-
-
-
 		this.add_file_to_rule_set = function(file_path) {
-
 			//the last one is a file
 			var individualDirs = dir_path.split('/');
 			var file_name = individualDirs.slice(-1);
-
 			individualDirs.pop();
-
 			individualDirs.forEach(function(dir_name) {
 				if( currentIndex['/' + dir_name] != undefined) {
 					if(currentIndex['/' + dir_name] == '##ALL') {
@@ -237,17 +182,11 @@
 			});
 			currentIndex[file_name] = '##INCLUDE';
 			this.notify_rule_set_changed();
-
 		};
-
-
 		this.remove_dir_from_rule_set = function(dir_path) {
-
 			var individualDirs = dir_path.split('/');
-
 			var lastDir = individualDirs.slice(-1);
 			individualDirs.pop();
-
 			individualDirs.forEach(function(dir_name) {
 				if( currentIndex['/' + dir_name] != undefined) {
 					currentIndex = currentIndex['/' + dir_name];
@@ -257,24 +196,17 @@
 					return;
 				}
 			});
-
 			if(currentIndex['/' + lastDir] != undefined) {
 				delete currentIndex['/' + lastDir];
 			}
 			this.notify_rule_set_changed();
 		};
-
-
 		this.remove_file_from_rule_set = function(file_path) {
-
 			var individualDirs = file_path.split('/');
 			var file_name = individualDirs.slice(-1);
-
 			individualDirs.pop();
-
 			individualDirs.forEach(function(dir_name) {
 				if( currentIndex['/' + dir_name] != undefined) {
-
 					currentIndex = currentIndex['/' + dir_name];
 				}
 				else{
@@ -287,17 +219,11 @@
 			}
 			this.notify_rule_set_changed();	
 		};
-
-
-
 		this.test_file_included = function (file_path) {
-
 			//the last one is a file
 			var individualDirs = file_path.split('/');
 			var file_name = individualDirs.slice(-1);
-
 			individualDirs.pop();
-
 			individualDirs.forEach(function(dir_name) {
 				if( currentIndex['/' + dir_name] != undefined) {
 					if(currentIndex['/' + dir_name] == '##ALL') {
@@ -316,14 +242,11 @@
 				return false;
 			}
 		};
-
 		this.test_dir_included = function (dir_path) {
 			//the last one is a file
 			var individualDirs = file_path.split('/');
 			var lastDir = individualDirs.slice(-1);
-
 			individualDirs.pop();
-
 			individualDirs.forEach(function(dir_name) {
 				if( currentIndex['/' + dir_name] != undefined) {
 					if(currentIndex['/' + dir_name] == '##ALL') {
@@ -341,14 +264,14 @@
 			else{
 				return false;
 			}
-
 		};
-
 //HERE ARE THE DIRECTORY/FILE DISPLAY INTRFACE FUNCTIONS --> incomming
 	//SENT FROM THE DISPLAY WHEN EITHER REQUIRES DIR REQUEST OR NEEDS TO SET INCLUDE/EXCLUDE
 		this.directory_clicked = function(dir_path) {
 			if(this.state = ("select_file" | "select_element" | "select_value")) {
 				this.send_directory_contents_request(dir_path);
+
+				this.set_state("awaiting directory data");
 			}
 			else if(this.state == "select_included_files_and_dirs") {
 				if(this.test_dir_included(dir_path) == false) {
@@ -362,10 +285,10 @@
 				//do nothing
 			}
 		};
-
 		this.file_clicked = function(file_path) {
 			if(this.state = "select_file" | "select_element" | "select_value") {
 				this.send_file_contents_request(file_path);
+				this.set_state("awaiting file data");
 			}
 			else if(this.state == "select_included_files_and_dirs") {
 				if(this.test_file_included(file_path) == false) {
@@ -379,65 +302,83 @@
 				//do nothing
 			}
 		};
-
 //HERE ARE THE IFRAME DISPLAY INTERFACE FUNCTIONS --> incomming
 	//the top element of the clone is a single element
-
-		var current_element_id;
-
-		var current_value_element_id;
-
-		var current_attribute_element_id;
+		this.current_element_id;
+		this.current_value_element_id;
+		this.current_attribute_element_id;
 
 		this.iframe_element_clicked = function(element_clone) {
-
 			if(this.state == "select_element" | "select_value") {
 				current_element_id = element_clone.id;
 				this.display_interface.new_display(element_clone);
-
-
-
 //MUST CREATE THIS FUNCTION
-
 				this.notify_display_changed();
 			}
-
 			else{
 				//requires a cancel to be able to click the iframe, (cancel the att set, or other)
 			}
 		};
-
-
 //HERE ARE THE ELEMENT DIPLAY FUNCTIONS
+		
+	
 
+		//this is the received element_id for the value, will have to re:map on zoom out, ensure relation to key
 		this.set_value_element = function(element_id) {
-
 			if(this.state != 'set_value') {
 				return false;
 			}
-			else if(this.current_element_id == element_id) {
+			else if(this.current_value_element_id == element_id) {
 				return false;
 			}
 			var value_element = this.iframe_interface.map['element_id'];
-
-			this.current_element_id = element_id;
+			this.current_value_element_id = element_id;
 			this.attribute_select_interface.notify_value(element_id, innerHTML);
 			this.state = 'select_attribute_match';
 			return true;
 		}
 
+
+		//called when the zoom out button is clicked, must have something in the display
+		this.zoom_out = function() {
+			if(this.state != ('set_value'| "select_attribute_match" | "select_rule" ) {
+				return false;
+			}
+			if(this.current_value_element_id != null) {
+				var temp_value_element = this.display_interface.element_map[this.current_value_element_id];
+				var new_display_node = this.iframe_interface.getParentDisplay(this.current_value_element_id);
+
+				if(new_display_node == null) {
+					return null;
+				}
+
+				this.current_element_id = new_display_node.id;
+				this.current_value_element_id = null;
+
+				this.display_interface.element_map.forEach(function(element, element_id) {
+					if(temp_value_element == element) {
+						this.current_value_element_id = element_id;
+						goto done;
+					}
+				});
+
+		done: 	this.display_interface.receive_parent_display(new_display_node);
+				return true;
+				
+			}
+		}
+
 //HERE ARE THE INTERAL SERVER REQUEST FUNCTIONS
 		this.send_directory_contents_request = function (dir_path) {
-
 			var request_string = "scraper_directories.php/?user_id=" +this.server_info['user_id'];
 			request_string.concat("?scraper_profile_path=" + this.server_info['scraper_profile_path']);
-
 			request_string.concat("?dir_path=" + dir_path);
 
 			var call_back = function(responseText) {
 				this.directory_display_interface.send_directory_contents(responseText);
+				this.set_state("select file");
 			}
-////////////////////////////////////?HERE///////////////////////////////////
+
 			this.send_and_receive_data_to_server(request_string, call_back);
 		}
 
@@ -447,35 +388,33 @@
 		this.send_file_contents_request = function (file_path) {
 			var request_string = "scraper_directories.php/?user_id=" +this.server_info['user_id'];
 			request_string.concat("&scraper_profile_path=" + this.server_info['scraper_profile_path']);
-
 			request_string.concat("&file_path=" + file_path);
 
 			var call_back = function(responseText) {
 				//possibly does not need because you can just set the src of ifram (is same origin)
 				this.iframe_interface.send_file_contents(responseText);
+				this.set_state("select value");
 			}
-
 			this.send_and_receive_data_to_server(request_string, call_back);
 		}
 
 
-
 		this.send_rule_sets = function() {
+			if(this.state == ("initializing" | "awaiting file data" | "select_attribute_match" | "select_rule" | "pending_rule_test" | "select_included_files_and_dirs") ) {
+				return false;
+			}
 
 			var rule_sets_string='';
 			this.rule_sets.forEach(function(rule_set_array, rule_set_name) {
 				rule_sets_string.concat(this.build_rule_set_string(rule_set_array, rule_set_name));
 			});
-
 			var send_string = "rule_sets.php/?user_id="  +this.server_info['user_id'];
 			request_string.concat("&scraper_profile_path=" + this.server_info['scraper_profile_path']);
 			request_string.concat("&rule_sets_strings=" + rule_sets_string);
-
 			//this call should change the page in the php
 			this.send_and_receive_data_to_server(request_string, null);
-
+			this.set_state("sent_rule_sets");
 		}
-
 
 
 		this.build_rule_set_string = function(rule_set_array, rule_set_name) {
@@ -483,9 +422,7 @@
 		}
 
 
-
 		this.send_and_receive_data_to_server = function(requestString, call_back_function) {
-
 			var xmlhttp = new XMLHttpRequest();
 
 			if(call_back_function != null) {
@@ -499,8 +436,5 @@
 			xmlhttp.open("POST", requestString, true);
 			xmlhttp.send();
 		}
-
 		
-
-
 </script>
