@@ -290,6 +290,72 @@
 			}
 		}
 
+		$Selected_List = array();
+
+		function Set_Display_New_Entires($display_amount) {
+
+			//display amount either 10, 100, 1000
+
+			$total_amount = count($New_Entry_List)
+
+			$number_of_blocks = $total_amount/$display_amount + (($total_amount % $display_amount)? 1:0);
+
+			$current_block_number = 0;
+
+			$current_block = array_slice($New_Entry_List, $current_block_number*$display_amount, $display_amount);
+
+			$HTML_Display_Text = sprintf('<form id="new_entry_submit_form_block_%s" name="" action="%s" method=post>', $current_block_number, 'self');
+
+			$HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="attribute_value_table">');
+
+			$attribute_name_array = array();
+
+			foreach ($attribute_list as $attribute_name => $attribute_type) {
+				array_push($attribute_name_array, $attribute_name);
+			}
+
+
+			//still need to set for things like position and areas of practice
+
+			foreach ($current_block as $email_index => $attributes_and_values) {
+				$current_index=0;
+
+				$table_row = sprintf('<tr><td>%s</td>', $email_index);
+				$has_value = true;
+				while(true) {
+					if($current_index > 0) {
+						$table_row = sprintf('<tr><td></td>');
+					}
+					foreach ($attribute_name_array as $key => $attribute_name) {
+
+						if(isset($New_Entry_List[$email_index][$attribute_name][$current_index])){
+
+							$table_row = $table_row.sprintf('<td><input type="radio" name="%s" value="%s"></td>', $email_index.'::'.$attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
+							$has_value = true;
+						}
+						else{
+							$table_row = $table_row.sprintf('<td></td>');
+						}
+
+					}
+
+					if($has_value == true) {
+						if($current_index == 0){
+							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="%s" value="%s" checked></tr>',$email_index.'::ALL_FIRST_ROW', 'ALL_FIRST_ROW');
+						}
+						else{
+							$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
+						}
+						$has_value = FALSE;
+					}
+					else{
+						break;
+					}
+				}
+			}
+			$HTML_Display_Text = $HTML_Display_Text.'</table><input type="submit" value="Submit"></form>';
+
+		}
 
 
 		// function Add_Single_Entry_To_Change_List($email, $new_attribute_value, $attribute, $change_list, $Duplicate_Email_List, $Duplicate_Attributes_List) {
