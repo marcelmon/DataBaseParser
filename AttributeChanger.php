@@ -304,7 +304,7 @@
 
 			$current_block = array_slice($New_Entry_List, $current_block_number*$display_amount, $display_amount);
 
-			$HTML_Display_Text = sprintf('<form id="new_entry_submit_form_block_%s" name="" action="%s" method=post>', $current_block_number, 'self');
+			$HTML_Display_Text = sprintf('<form id="new_entry_submit_form_block_%s" name="" action="%s" method="post">', $current_block_number, 'self');
 
 			$HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="attribute_value_table">');
 
@@ -346,7 +346,8 @@
 						else{
 							$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
 						}
-						$has_value = FALSE;
+						$has_value = false;
+						$current_index++;
 					}
 					else{
 						break;
@@ -354,9 +355,89 @@
 				}
 			}
 			$HTML_Display_Text = $HTML_Display_Text.'</table><input type="submit" value="Submit"></form>';
+			return $HTML_Display_Text;
 
 		}
 
+		function Change_Display($new_page_number) {
+
+		}
+
+		function Set_Display_Modify_Entries($display_amount) {
+			$total_amount = count($Modify_Entry_List)
+
+			$number_of_blocks = $total_amount/$display_amount + (($total_amount % $display_amount)? 1:0);
+
+			$current_block_number = 0;
+
+			$current_block = array_slice($Modify_Entry_List, $current_block_number*$display_amount, $display_amount);
+
+			$HTML_Display_Text = sprintf('<form id="modify_entry_submit_form_block_%s" name="" action="%s" method="post">', $current_block_number, 'self');
+
+			$HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="attribute_value_table">');
+
+			$attribute_name_array = array();
+
+			foreach ($attribute_list as $attribute_name => $attribute_type) {
+				array_push($attribute_name_array, $attribute_name);
+			}
+
+
+			//still need to set for things like position and areas of practice
+
+			foreach ($current_block as $email_index => $attributes_and_values) {
+				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email_index);
+				$user_result = Sql_Query($entry_query);
+				$table_row = sprintf('<tr><td>%s</td>', $email_index);
+
+				foreach ($attribute_name_array as $key => $attribute_name) {
+
+					$attribute_query =  sprintf('select value from %s where primary key = "%s"', $GLOBALS['tables']['user_attribute'], $user_result['id'].$attribute_list[$attribute_name]['id']);
+					$current_attribute_value = Sql_Query($attribute_query);
+					if($current_attribute_value) {
+						$table_row = $table_row.sprintf('<tr><td>%s</td>', $current_attribute_value);
+					}
+					else{
+						$table_row = $table_row.'<td></td>';
+					}
+				}
+				$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
+
+				$has_value = false;
+				$current_index = 0;
+				while(true) {
+					$table_row = '<tr><td></td>';
+
+					foreach ($attribute_name_array as $key => $attribute_name) {
+
+						if(isset($Modify_Entry_List[$email_index][$attribute_name][$current_index])) {
+							$table_row = $table_row.sprintf('<td><input type="radio" name="%s" value="%s"></td>', $email_index.'::'.$attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
+							$has_value = true;
+						}
+						else{
+							$table_row = $table_row.'<td></td>'
+						}
+					}
+					if($has_value == true) {
+						if($current_index == 0){
+							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="%s" value="%s" checked></tr>',$email_index.'::ALL_FIRST_ROW', 'ALL_FIRST_ROW');
+						}
+						else{
+							$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
+						}
+						$has_value = false;
+						$current_index++;
+					}
+					else{
+						break;
+					}
+
+				}
+
+			}
+			$HTML_Display_Text = $HTML_Display_Text.'</table><input type="submit" value="Submit"></form>';
+			return $HTML_Display_Text;
+		}
 
 		// function Add_Single_Entry_To_Change_List($email, $new_attribute_value, $attribute, $change_list, $Duplicate_Email_List, $Duplicate_Attributes_List) {
 			
