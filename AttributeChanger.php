@@ -1,6 +1,12 @@
 <?php
 
+/*
 
+	AREA OF PRACTICE IS AN ATTRIBUTE FIELD TO ADD
+
+	//SET VALUES OF CHECKBOX ARE STORED COMMA SEPARATED
+
+*/
 	class AttributeChanger {
 
 		global $tables, $DBstruct;
@@ -50,6 +56,12 @@
 		//need to indicate which are modifying
 		$Modify_Entry_List;
 
+		//THIS HOLDS EMAILS WITH DUPLICATES
+		$Duplicate_Attribute_Values_list;
+
+		//THIS HOLDS EMAILS WITH SPECIFIED DUPLICATE ATTRIBUTES
+		$Duplicate_Attributes;
+
 
 		$attribut_list;
 
@@ -84,7 +96,10 @@
 						else{
 							//is other input type
 						}
+
+						$Duplicate_Attributes[$attribute_data['name']]= array();
 					}
+
 				}
 			}
 			else{
@@ -92,6 +107,78 @@
 			}
 		}
 		
+		function Updated_Test_Entry($entry) {
+			//entry is [email]=>array (attribute, value)
+
+
+			$changing_attributes = array();
+
+			if(!array_key_exists("email", $entry)) {
+				return false;
+			}
+			$email = $entry['email'];
+			unset($entry['email']);
+
+			if(!filter_var($email, FILTER_VALIDATE_EMAIL) ){
+				return false;
+			}
+
+			$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
+			$user_result = Sql_Query($entry_query);
+
+			if(count($user_result) == 0) {
+
+				if($entry_result){
+					return true;
+				}
+				else{
+					if(isset($New_Entry_List[$email])) {
+						return true;
+					}
+					else{
+						$New_Entry_List[$email] = array();
+						return true;
+					}
+				}
+			}
+
+			$good_attributes = array();
+
+			foreach ($entry as $attribute => $new_attribute_value) {
+				if(isset($attribute_list[$attribute])){
+
+					if($attribute_list[$attribute]['type'] == "radio"|"select") {
+
+						if(in_array($new_attribute_value, $attribute_list[$attribute]['allowed_values'])) {
+								if($user_result) {
+
+									$attribute_query = sprintf("select * from %s where primary key = %s", $GLOBALS['tables']['user_attribute'], $attribute_list[$attribute]['id'].$user_result['id']);
+									$current_user_attribute = Sql_Query($attribute_query);
+
+									if($current_user_attribute != $new_attribute_value) {
+										array_push($changing_attributes[$attribute], $new_attribute_value);
+									}
+
+								}
+
+							}
+							else{
+								//not a good attribute
+							}
+						}
+					}
+					if($attribute_list[$attribute]['type'] == 'checkboxgroup'|'checkbox') {
+
+						$exploded_attribute_values = explode(',', $new_attribute_value);
+
+						foreach ($exploded_attribute_values as $key => $exploded_attribute) {
+							
+						}
+					}
+				}
+			}
+
+		}
 
 		function Test_Entry($entry) {
 			//entry is [email]=>array (attribute, value)
@@ -134,7 +221,7 @@
 
 						switch($attribute_list[$attribute]['type']) {
 
-							case "radio"|"checkboxgroup"|"select"|"checkbox":
+							case "radio"|"select":
 
 								if(in_array($value, $attribute_list[$attribute]['allowed_values'])) {
 									$good_attributes[$attribute] = $value;
@@ -144,6 +231,22 @@
 								}
 
 							case 'date':
+
+							case 'checkboxgroup'|'checkbox':
+
+								$exploded_values = explode(',', $value);
+								$allowed_exploded_values = explode(',', $attribute_list[$attribute]['allowed_values']);
+								foreach ($exploded_values as $key => $exploded_attribute_value) {
+									if(in_array($exploded_attribute_value, $allowed_exploded_values)) {
+										if(!isset($good_attributes[$attribute])) {
+											//MIGHT BE (,) w/  '('  or  ')' 
+											$good_attributes[$attribute] = $exploded_attribute_value;
+										}
+										else{
+											$good_attributes[$attribute] = $good_attributes[$attribute].','.$exploded_attribute_value;
+										}
+									}
+								}
 
 							default:
 								$good_attributes[$attribute] = $value;
@@ -159,19 +262,92 @@
 				$user_result = Sql_Query($query);
 
 				$changing_attributes = array();
-				if($result){
+
+				if($user_result){
+					//there is a user with this email
 					
 					if(!isset($user_result['id'])){
 						///.SHOULDNT
 					}
 
+					//iterate through all the potential attribute changes to build a list of possible changes to display
 					foreach ($good_attributes as $attribute => $value) {
 						$attribute_query = sprintf("select * from %s where primary key = %s", $GLOBALS['tables']['user_attribute'], $attribut_list['id'].$user_result['id']);
-						if(isset($attribute_query)) {
-							if($attribute_query['value'] != $value) {
+						
+						$current_user_attribute = Sql_Query($attribute_query);
+
+						if(isset($current_user_attribute)) {
+
+							if($attribute_list[$attribute]['type'] == 'checkbox') {
+								
+								// NEED TO SET WAY TO REMOVE VALUES --> using sticky values
+								$exploded_values = explode(',', $value);
+								//////
+								$changed_values = array();
+
+								$current_change_values = explode(',' , $current_user_attribute['value']);
+								foreach ($exploded_values as $key => $individual_value) {
+									if(!in_array($individual_value, $current_change_values)) {
+										array_push($changed_values, $individual_value);
+									}
+								}
+								if(count($changed_values)==0){
+
+								}
+								else{
+									$changing_attributes[$attribute] = $changed_values;
+								}
+							}
+
+
+							else if($current_user_attribute['value'] != $value) {
 								$changing_attributes[$attribute] = $value;
 							}
 						}
+
+					}
+
+					if(isset($Modify_Entry_List[$email])) {
+
+						foreach ($changing_attributes as $attribute => $value) {
+
+
+
+							if(isset($Modify_Entry_List[$attribute])){
+								//there is already at least 1 new attribute for this email
+								$is_already_included = false;
+								foreach ($Modify_Entry_List[$attribute] as $key => $inserted_value) {
+									if($inserted_value = $value){
+										$is_already_included = true;
+										break;
+									}
+								}
+
+								if($is_already_included == false){
+									array_push($Modify_Entry_List[$attribute], $value);
+
+									//indicate there are multiple entries of at least 1 attribute for this email
+									if(!isset($Duplicate_Attribute_Values_list[$email])){
+										$Duplicate_Attribute_Values_list[$email] = true;
+									}
+									//indicate there are multiple entries for this email,attribute pair
+									if(!isset($Duplicate_Attributes[$attribute][$email])) {
+										$Duplicate_Attributes[$attribute][$email] = true;
+									}
+								}
+								else{
+									//no need to include 
+								}
+							}
+							else{
+								//there is no value for this entry
+								//is not a duplicate then
+								$Modify_Entry_List[$attribute] = $value;
+							}
+						}
+					}
+					else{
+						$Modify_Entry_List[$email] = $changing_attributes;
 					}
 
 				}
