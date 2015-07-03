@@ -6,6 +6,7 @@
 		this.rule_sets = new Array();
 		this.iframe_interface = null;
 		this.display_interface = null;
+		this.inner_display_interface = null;
 		this.attribute_selector_interface = null;
 		this.directory_display_interface = null;
 		this.state = 'initializing';
@@ -91,10 +92,10 @@
 				case default:
 			}
 		}
+
 		this.set_iframe_interface = function (iframe_interface) {
 			this.iframe_interface = iframe_interface;
 		}
-		
 		this.set_display_interface = function (display_interface) {
 				this.display_interface = display_interface;
 		}
@@ -104,6 +105,10 @@
 		this.set_directory_display_interface = function (directory_display_interface) {
 				this.directory_display_interface = directory_display_interface;
 		};
+		this.inner_display_interface = function (inner_display_interface) {
+				this.inner_display_interface = inner_display_interface;
+		};
+
 //HERE ARE THE RULE_SET MANIPULATION FUNCTIONS
 		this.change_curent_rule_set = function(rule_set) {
 			if(!this.rule_sets[rule_set]) {
@@ -321,6 +326,9 @@
 		};
 //HERE ARE THE ELEMENT DIPLAY FUNCTIONS
 		
+		this.display_element_clicked = function(element_id) {
+
+		}
 	
 
 		//this is the received element_id for the value, will have to re:map on zoom out, ensure relation to key
@@ -328,14 +336,169 @@
 			if(this.state != 'set_value') {
 				return false;
 			}
-			else if(this.current_value_element_id == element_id) {
+			
+			var value_element = this.iframe_interface.map['element_id'];
+			if(!value_element) {
 				return false;
 			}
-			var value_element = this.iframe_interface.map['element_id'];
+
 			this.current_value_element_id = element_id;
 			this.attribute_select_interface.notify_value(element_id, innerHTML);
 			this.state = 'select_attribute_match';
 			return true;
+		}
+
+
+		this.set_rule_element = function(element_id, innerTEXT) {
+			if(this.state != 'set_rule') {
+				return false;
+			}
+			if(this.current_value_element_id == element_id) {
+				return false;
+			}
+			else{
+				var rule_element = this.iframe_interface[element_id];
+				var selected_value_element = this.iframe_interface.map[this.current_value_element_id];
+
+				if(rule_element == null || selected_value_element == null){
+					return false;
+				}
+
+				if(rule_element.parentNode != selected_value_element) {
+					if(rule_element.parentNode != selected_value_element.parentNode) {
+						if(rule_element != selected_value_element.parentNode) {
+							return false;
+						}
+					}
+				}
+				var root_clone = element.cloneNode(false);
+				if(root_clone.innerHTML) {
+					this.current_attribute_element_id = element_id;
+
+					this.attribute_select_interface.set_rule_test(root_clone.innerHTML);
+
+					this.inner_display_interface.receive_new_text(root_clone.innerHTML);
+					this.set_state("pending_rule_test");
+					return true;
+				}
+				else{
+					return false;
+				}
+			}
+		}
+
+		this.set_rule_by_DOM = function() {
+			if(this.state != 'set_rule') {
+				return false;
+			}
+			if(this.current_element_id == null) {
+				return false;
+			}
+			if(this.attribute_select_interface.current_attribute == null) {
+				return false;
+			}
+			else{
+				var value_element = this.iframe_interface.map[this.current_element_id];
+				if(!value_element){
+					return false;
+				}
+				var unique_frame_id = this.iframe_interface.findUniqueIfameId(value_element);
+				if(unique_frame_id[0] === 'REACHED_THE_TOP') {
+					return false;
+				}
+				if(this.current_rule_set[this.attribute_select_interface.current_attribute] == null) {
+					this.current_rule_set[this.attribute_select_interface.current_attribute] = new Array();
+					this.current_rule_set[this]
+				}
+			}
+		}
+
+		this.rule_set_object = function(attributes_and_types) {
+
+			this.rule_set_name = '';
+			this.attribute_map = new Array();
+
+
+
+		}
+
+		this.attribute_map_object = function() {
+			this.attribute_name = '';
+			this.attribute_type = '';
+
+			//attribute mappings :
+			// 			'value_only_not_table': value_identifier_array
+
+			//			"value_only_table" : table_identifier, row #, column #
+
+			// 			"key_and_value_NOT_table" : key_identifier, key_text, value_id
+										//key id can be in terms of position to value id
+										//value id can in terms of position to key id
+
+
+			//			"key_and_value_table" : table_id, key_col, key_text, value_col
+
+			this.attribute_rule_mapping = new Array();
+
+			this.add_rule_value_only_not_table = function(value_element) {
+				if(!value_element) {
+					return false;
+				}
+
+				this.attribute_rule_mapping.forEach(function(map) {
+					if(map['value_element']) {
+						if(map['value_element'] == value_element) {
+							return false;
+						}
+					}
+				});
+
+				var map_array = new Array();
+				map_array['map type'] = 'value_only_not_table';
+				map_array['value_element'] = value_element;
+				map_array['unique_frame_id'] = this.iframe_interface.findUniqueIfameId(value_element);
+				if(!map_array['unique_frame_id']) {
+					return false;
+				}
+
+				this.attribute_rule_mapping.push(map_array);
+				return true;
+			}
+		}
+
+		this.add_rule_value_only_table = function(table_element, row, column) {
+				if(!value_element) {
+					return false;
+				}
+				
+				this.attribute_rule_mapping.forEach(function(map) {
+					if(map['table_element']) {
+						if(map['table_element'] == table_element) {
+							if(map['row'] == row && map['column']==column) {
+								return false;
+							}
+						}
+					}
+				});
+
+				var map_array = new Array();
+				map_array['map type'] = 'value_only_table';
+				map_array['table_element'] = table_element;
+				map_array['unique_frame_id'] = this.iframe_interface.findUniqueIfameId(table_element);
+				if(!map_array['unique_frame_id']) {
+					return false;
+				}
+				//may want to toString()
+				map_array['row'] = row;
+				map_array['column'] = column;
+
+				this.attribute_rule_mapping.push(map_array);
+				return true;
+			}
+		}
+
+		this.add_rule_key_and_value_not_table = function(key_element, key_text, value_element) {
+		//////////////////////////////////////////////////////////////////////////
 		}
 
 
@@ -349,7 +512,7 @@
 				var new_display_node = this.iframe_interface.getParentDisplay(this.current_value_element_id);
 
 				if(new_display_node == null) {
-					return null;
+					return false;
 				}
 
 				this.current_element_id = new_display_node.id;
@@ -362,7 +525,7 @@
 					}
 				});
 
-		done: 	this.display_interface.receive_parent_display(new_display_node);
+done: 			this.display_interface.receive_parent_display(new_display_node);
 				return true;
 				
 			}
