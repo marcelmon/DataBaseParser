@@ -66,6 +66,7 @@
 		$attribute_list;
 
 		function Initialize() {
+			//get all attributes and their info
 			$query = sprintf('select * from %s', $GLOBALS['tables']['attribute']);
 			$attribute_data_rows = Sql_Query($query);	
 
@@ -77,12 +78,14 @@
 						//not known format, cannot use
 					}
 					else{
-						$attribute_list[$attribute_data['name']] = array($attribute_data);
+						//use the attribute list to get type and value information
+						$attribute_list[$attribute_data['name']] = $attribute_data;
 						if($attribute_data['type'] == ("radio"|"checkboxgroup"|"select"|"checkbox")) {
 							if(!isset($attribute_data['tablename'])) {
 
 							}
 							else{
+								//must query to get the allowed values
 								$value_table_name = $table_prefix."listattr_".$attribute_data["tablename"];
 								$value_query = sprintf("select * from %s", $value_table_name);
 								$allowed_values  = Sql_Query($value_query);
@@ -108,7 +111,6 @@
 			$New_Entry_List = array();
 			$Modify_Entry_List = array();
 			$Duplicate_Attribute_Values_list = array();
-			$Duplicate_Attributes = array();
 
 		}
 		
@@ -130,12 +132,14 @@
 			$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
 			$user_result = Sql_Query($entry_query);
 
-			if(count($user_result) == 0) {
-
-				if($entry_result){
+			//0 if there are no attributes, is only existence
+			if(count($entry) == 0) {
+				//if there is a user then already done
+				if($user_result){
 					return true;
 				}
 				else{
+					//will need to create a new user if not already
 					if(isset($New_Entry_List[$email])) {
 						return true;
 					}
@@ -145,8 +149,9 @@
 					}
 				}
 			}
-
+			//if there are attributes, must check each value to look for update
 			foreach ($entry as $attribute => $new_attribute_value) {
+
 				if(isset($attribute_list[$attribute])) {
 					if(isset($user_result['id'])) {
 						$attribute_query = sprintf("select * from %s where primary key = %s", $GLOBALS['tables']['user_attribute'], $attribute_list[$attribute]['id'].$user_result['id']);
@@ -154,7 +159,7 @@
 					}
 
 
-					//these are single choce values
+					//these are single choice values
 					if($attribute_list[$attribute]['type'] == "radio"|"select") {
 
 						//must check if the possible new value is an allowed value
@@ -183,6 +188,7 @@
 						}
 					}
 
+					//these are multiple choice types, the new attribute value must match
 					else if($attribute_list[$attribute]['type'] == 'checkboxgroup'|'checkbox') {
 
 						$exploded_attribute_values_array = explode(',', $value);
@@ -437,6 +443,53 @@
 			}
 			$HTML_Display_Text = $HTML_Display_Text.'</table><input type="submit" value="Submit"></form>';
 			return $HTML_Display_Text;
+		}
+
+		$Stored_New_entries;
+		$Stored_Modify_Entries;
+
+		function Submit_New_Entries(){
+			//store all new entries
+
+
+
+			foreach ($Stored_New_entries as $email => $attributes) {
+				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
+				$user_result = Sql_Query($entry_query);
+				if($user_result){
+					//skip, shouldnt have already found one
+				}
+				else{
+					$id_val = $GLOBALS['incremental_id']++;
+					$new_entry_query = sprintf('insert into %s (id,email) values("%s","%s")', $GLOBALS['tables']['user'], $id_val, $email);
+					Sql_Query($new_entry_query);
+///////////////////THERE IS PROBABLY NEW USER FUNCTIONS TO USE/////////////////////////////////////////
+					foreach ($attributes as $attribute_name => $attribute_info) {
+						if(!isset($attribute_list[$attribute_name])) {
+							//skip
+						}
+						else{
+							$new_entry_attribute_query = sprintf('insert into %s ()')
+						}
+					}
+				}
+			}
+			
+		}
+
+		function Submit_Modify_Entries() {
+
+			foreach ($Stored_Modify_Entries as $email => $attribute_values) {
+				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
+				$user_result = Sql_Query($entry_query);
+				if(isset($user_result['id'])) {
+					foreach ($attribute_values as $attribute_name => $attribute_value) {
+						$update_query = sprintf('update %s set value="%s" where primary key="%s"', $GLOBALS['tables']['user_attribute'], $attribute_value, $attribute_list[$attribute_name]['id'].$user_result['id']);
+						Sql_Query($update_query);
+					}
+				}
+			}
+
 		}
 
 		// function Add_Single_Entry_To_Change_List($email, $new_attribute_value, $attribute, $change_list, $Duplicate_Email_List, $Duplicate_Attributes_List) {
