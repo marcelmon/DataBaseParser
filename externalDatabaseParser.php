@@ -23,7 +23,7 @@ class DatabaseParser extends DefaultPlugin{
 
 		function turnOnDatabaseParser(){
 			//NEED TO SQL QUERY THIS!!!!!!!!
-			if(!isset($$GLOBALS['tables']['pluggins']['DataBaseParserPluggin'])){
+			if(!isset($GLOBALS['tables']['pluggins']['DataBaseParserPluggin'])){
 				$GLOBALS['tables']['pluggins']['DataBaseParserPluggin'] = $databaseParserInfo = array('isOn' => true);
 				$DataBaseParsePluggin = $GLOBALS['tables']['pluggins']['DataBaseParserPluggin'];
 				$DataBaseParserPluggin['current_incremental_id'] = 1;

@@ -336,7 +336,7 @@
 
 						if(isset($New_Entry_List[$email_index][$attribute_name][$current_index])){
 
-							$table_row = $table_row.sprintf('<td><input type="radio" name="%s" value="%s"></td>', $email_index.'::'.$attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
+							$table_row = $table_row.sprintf('<td><input type="radio" name="New_Entry_Table[%s][%s]" value="%s"></td>', $email_index, $attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
 							$has_value = true;
 						}
 						else{
@@ -347,7 +347,7 @@
 
 					if($has_value == true) {
 						if($current_index == 0){
-							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="%s" value="%s" checked></tr>',$email_index.'::ALL_FIRST_ROW', 'ALL_FIRST_ROW');
+							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="New_Entry_Table[%s][%s]" value="%s" checked></tr>',$email_index,'ALL_FIRST_ROW','ALL_FIRST_ROW_SET');
 						}
 						else{
 							$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
@@ -417,7 +417,7 @@
 					foreach ($attribute_name_array as $key => $attribute_name) {
 
 						if(isset($Modify_Entry_List[$email_index][$attribute_name][$current_index])) {
-							$table_row = $table_row.sprintf('<td><input type="radio" name="%s" value="%s"></td>', $email_index.'::'.$attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
+							$table_row = $table_row.sprintf('<td><input type="radio" name="Modify_Entry_Table[%s][%s]" value="%s"></td>', $email_index, $attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
 							$has_value = true;
 						}
 						else{
@@ -426,7 +426,9 @@
 					}
 					if($has_value == true) {
 						if($current_index == 0){
-							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="%s" value="%s" checked></tr>',$email_index.'::ALL_FIRST_ROW', 'ALL_FIRST_ROW');
+
+									//MUST HAVE CLICKING THIS RADIO BUTTON TO SET EACH OTHER RADIO BUTTON
+							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="Modify_Entry_Table[%s][%s]" value="%s" checked></tr>',$email_index, "ALL_FIRST_ROW", "ALL_FIRST_ROW");
 						}
 						else{
 							$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
@@ -450,8 +452,6 @@
 
 		function Submit_New_Entries(){
 			//store all new entries
-
-
 
 			foreach ($Stored_New_entries as $email => $attributes) {
 				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
@@ -492,51 +492,50 @@
 
 		}
 
-		// function Add_Single_Entry_To_Change_List($email, $new_attribute_value, $attribute, $change_list, $Duplicate_Email_List, $Duplicate_Attributes_List) {
-			
-		// 	if(!isset($change_list[$attribute])) {
-
-		// 		$change_list[$attribute] = array($new_attribute_value);
-
-		// 	}
-		// 	else{
-		// 		//there is already a new value for this attribute.... push if this value is not existant and mark as new if not already set
-		// 		if(in_array($new_attribute_value, $change_list[$attribute])) {
-		// 			return;
-		// 		}
-
-		// 		array_push($change_list[$attribute], $new_attribute_value)
-
-		// 		if(!isset($Duplicate_Email_List[$email])){
-		// 			$Duplicate_Email_List[$email] = true;
-		// 		}
-		// 		//indicate there are multiple entries for this email,attribute pair
-		// 		if(!isset($Duplicate_Attributes_List[$attribute][$email])) {
-		// 			$Duplicate_Attributes_List[$attribute][$email] = true;
-		// 		}
-		// 	}
-		// }
-
-		// function Add_Multi_Entry_To_Change_List($new_attribute_value, $attribute, $change_list) {
-		// 	if(!isset($change_list[$attribute])) {
-
-		// 		$change_list[$attribute] = array($new_attribute_value);
-
-		// 	}
-		// 	else{
-		// 		//there is already a new value for this attribute.... push if this value is not existant and mark as new if not already set
-		// 		if(in_array($new_attribute_value, $change_list[$attribute])) {
-		// 			return;
-		// 		}
-
-		// 		array_push($change_list[$attribute], $new_attribute_value)
-		// 	}
-		// }
+		/////////CHECKBOXES HAVE COLUMNS AS VALUE EITHER ON OR OFF for values
 
 
+		if(isset($_POST[$id])){
+			if(isset($_POST['New_Entry_Table'])) {
 
-		
+				foreach ($_POST['New_Entry_Table'] as $email => $attribute_value_set) {
+
+					$Stored_New_entries[$email] = array();
+					if(isset($attribute_value_set['ALL_FIRST_ROW']) {
+						foreach ($New_Entry_List[$email] as $attribute_name => $values_array) {
+						 	$Stored_New_entries[$email][$attribute_name] = $values_array[0];
+						}
+					}
+					else{
+						foreach ($attribute_value_set as $attribute_name => $attribute_value) {
+							$Stored_New_entries[$email][$attribute_name] = $attribute_value;
+						}
+					}
+				}
+			}
+			if(isset($_POST['Modify_Entry_Table'])) {
+
+				foreach ($_POST['Modify_Entry_Table'] as $email => $attribute_value_set) {
+
+					$Stored_Modify_Entries[$email] = array();
+					if(isset($attribute_value_set['ALL_FIRST_ROW']) {
+						foreach ($New_Entry_List[$email] as $attribute_name => $values_array) {
+						 	$Stored_Modify_Entries[$email][$attribute_name] = $values_array[0];
+						}
+					}
+					else{
+						foreach ($attribute_value_set as $attribute_name => $attribute_value) {
+							$Stored_Modify_Entries[$email][$attribute_name] = $attribute_value;
+						}
+					}
+				}
+			}
+		}
 
 	}
+
+
+
+	
 
 ?>
