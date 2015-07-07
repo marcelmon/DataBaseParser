@@ -313,18 +313,13 @@
 
 		$Current_New_Entry_Block;
 
-
-
 		function Initialize_New_Entries_Display() {
 
 			$Current_New_Entries_Display_Amount = 100;
-
 			$New_Enties_Total_Amount = count($New_Entry_List);
-
 			$New_Entires_Number_Of_Blocks = $New_Enties_Total_Amount/$Current_New_Entries_Display_Amount + (($New_Enties_Total_Amount % $New_Enties_Total_Amount)? 1:0);
 		
 			$Current_New_Entry_Block_Number = 0;
-
 
 			$Current_New_Entry_Block = array_slice($New_Entry_List, $Current_New_Entry_Block_Number*$Current_New_Entries_Display_Amount, $Current_New_Entries_Display_Amount);
 		
@@ -458,160 +453,7 @@
 		}
 
 
-		function Get_New_Entry_Table_Block($Block_Number) {
-
-			if($Current_New_Entry_Block_Number == $Block_Number) {
-				return null;
-			}
-
-
-			$Current_New_Entry_Block_Number = $Block_Number;
-			$Current_New_Entry_Block = array_slice($New_Entry_List, $Current_New_Entry_Block_Number*$Current_New_Entries_Display_Amount, $Current_New_Entries_Display_Amount);
-
-
-			$HTML_Display_Text = sprintf('<form name="New_Entry_Submit_Form_Block__%d" action="%s" method="post">', $current_block_number, 'self');
-
-			$HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="New_User_Attribute_Select_Table_Block__%d">', $current_block_number);
-
-			$HTML_table_row = '<tr><td>EMAIL</td>';
-
-			foreach ($attribute_list as $attribute_name => $attribute_type) {
-				$HTML_table_row = $HTML_table_row.sprintf('<td>%s<input type="CHECKBOX" name="Attribute_Column_Select[%s]" value="checked"',$attribute_name, $attribute_name);
-			}
-
-			$HTML_Display_Text = $HTML_Display_Text.'</tr>';
-
-			foreach ($Current_New_Entry_Block as $email_key => $new_user_attributes_and_values) {
-
-				if(isset($Commited_New_Entires[$email_key]) {
-					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" name="Modify_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input></td>',$email_key, $email_key);
-				}
-
-				else{
-					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" name="Modify_Entry_List[%s][\'include\']" value="include">Include This Email</input></td>',$email_key, $email_key);
-				}
-
-				//commited_new_entries[email]: attribute,value
-				foreach ($attribute_list as $attribute_name => $attribute_type) {
-
-					if(!isset($new_user_attributes_and_values[$attribute_name])) {
-						$HTML_table_row = $HTML_table_row.'<td></td>';
-					}
-
-					else if(isset($Commited_New_Entires[$email_key] && isset($Commited_New_Entires[$email_key][$attribute_name]))) {
-
-						if($attribute_type == 'checkboxgroup') {
-							$selectedGroupValues = split(',', $Commited_New_Entires[$email_key][$attribute_name]);
-						}
-
-						//one of the possible new attribute values for this attribute is already checked
-
-						//these are all possible attribute values
-						//for single values, 
-						foreach ($new_user_attributes_and_values[$attribute_name] as $key => $attribute_value) {
-							//must display each of the possible attribute values in a single cell
-
-							$HTML_table_row= $HTML_table_row.'<td>';
-
-
-							switch($attribute_type){
-
-								case "textarea"|"textline"|"checkbox"|"hidden"|"date": 
-
-									if($Commited_New_Entires[$email_key][$attribute_name] == $attribute_value) {
-										//if the attribute value is the already selected, mark as checked
-										$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s" checked>%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-
-									}
-									else{
-										//else not yet selected so just create the input
-										$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-									}
-
-									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
-									break;
-								
-
-								case "checkboxgroup": 
-									
-									if(in_array($attribute_value, $selectedGroupValues)) {
-										//the current attribute value should already be checked
-
-										$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s" checked>%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-									}
-									else{
-										//not already checked
-										$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s">%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-									}
-									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
-
-									break;
-								default:
-									break;
-							}
-							
-							
-						}
-						//have cycled through each of possible new values for the attribute
-						$HTML_table_row= $HTML_table_row.'</td>';
-
-
-					}
-					else{
-						//this attribute has no chosen attribute values set for this email
-						foreach ($new_user_attributes_and_values[$attribute_name] as $key => $attribute_value) {
-							//must display each of the possible attribute values in a single cell
-
-							$HTML_table_row= $HTML_table_row.'<td>';
-
-
-							switch($attribute_type){
-
-								case "textarea"|"textline"|"checkbox"|"hidden"|"date": 
-
-									$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-
-									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
-									break;
-								
-
-								case "checkboxgroup": 
-									
-									$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s">%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-
-									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
-
-									break;
-							}
-							
-							
-						}
-						//have cycled through each of possible new values for the attribute
-						$HTML_table_row = $HTML_table_row.'</td>';
-					}
-				}
-
-				$HTML_Display_Text = $HTML_Display_Text.$HTML_table_row;
-				
-			}
-			$HTML_Display_Text = $HTML_Display_Text.'</table>';
-			$HTML_submit_buttons = '<input type="submit" value="Submit_all"></input>';
-
-			if($Current_New_Entry_Block_Number > 0) {
-				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" value="New_Entries_Table_Previous_Page"></input>';
-			}
-
-			if($Current_New_Entry_Block_Number < $New_Entires_Number_Of_Blocks) {
-				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" value="New_Entries_Table_Next_page"></input>';
-			}
-
-			$HTML_Display_Text = $HTML_Display_Text.$HTML_submit_buttons.'</form>';
-
-			$HTML_current_table_info; = sprintf("Current Block : %d of %d. Displaying %d entires per page.", $Current_New_Entry_Block_Number+1, $New_Entires_Number_Of_Blocks, $Current_New_Entries_Display_Amount);
-			$HTML_Display_Text = $HTML_Display_Text.$HTML_current_table_info;
-
-			return $HTML_Display_Text;
-		}
+		function Display_New_Entry_Table_Block()
 
 
 
