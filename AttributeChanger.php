@@ -460,7 +460,7 @@
 					}
 				}
 
-				$HTML_Display_Text = $HTML_Display_Text.$HTML_table_row;
+				$HTML_Display_Text = $HTML_Display_Text.$HTML_table_row.'</tr>';
 				
 			}
 			$HTML_Display_Text = $HTML_Display_Text.'</table>';
@@ -474,8 +474,8 @@
 				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" value="New_Entries_Table_Next_page"></input>';
 			}
 
-			$HTML_Display_Size_Submit = '<select name="new_size_select"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
-			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" value="Change_Size"></input>';
+			$HTML_Display_Size_Submit = '<select name="New_Entry_Table_size_select"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
+			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" value="New_Entry_Change_Size"></input>';
 
 			$HTML_Display_Text = $HTML_Display_Text.$HTML_submit_buttons.$HTML_Display_Size_Submit.'</form>';
 
@@ -637,7 +637,11 @@
 
 					$HTML_table_row = $HTML_table_row.'<td>';
 
-					if(isset($Commited_Modify_Entries[$email_key] && isset($Commited_Modify_Entries[$email_key][$attribute_name]))) {
+					if(!isset($Current_Modify_Entry_Block[$email_key][$attribute_name])) {
+						
+					}
+
+					else if(isset($Commited_Modify_Entries[$email_key] && isset($Commited_Modify_Entries[$email_key][$attribute_name]))) {
 
 						if($attribute_info['type'] == 'checkboxgroup') {
 							$selectedGroupValues = split(',', $Commited_Modify_Entires[$email_key][$attribute_name]);
@@ -662,13 +666,50 @@
 							}
 							$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 						}
-
-
-
 					}
+					else{
+						if($attribute_info['type'] == 'checkboxgroup') {
+
+							foreach ($Current_Modify_Entry_Block[$email_key][$attribute_name] as $key => $group_attribute_value) {
+								
+								$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s">%s</input><br>', $email_key, $attribute_name, $group_attribute_value, $group_attribute_value);
+								
+								$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
+							}
+						}
+						else{
+							//will only be one currently set value
+							
+							$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+							$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
+						}
+					}
+					$HTML_table_row = $HTML_table_row.'</td>';
 				}
+				$HTML_Display_Text = $HTML_Display_Text.$HTML_table_row.'</tr>';
 				
 			}
+			
+			$HTML_Display_Text = $HTML_Display_Text.'</table>';
+			$HTML_submit_buttons = '<input type="submit" value="Submit_all"></input>';
+
+			if($Current_New_Entry_Block_Number > 0) {
+				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" value="New_Entries_Table_Previous_Page"></input>';
+			}
+
+			if($Current_New_Entry_Block_Number < $New_Entires_Number_Of_Blocks) {
+				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" value="New_Entries_Table_Next_page"></input>';
+			}
+
+			$HTML_Display_Size_Submit = '<select name="New_Entry_Table_size_select"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
+			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" value="New_Entry_Change_Size"></input>';
+
+			$HTML_Display_Text = $HTML_Display_Text.$HTML_submit_buttons.$HTML_Display_Size_Submit.'</form>';
+
+			$HTML_current_table_info = sprintf("Current Block : %d of %d. Displaying %d entires per page.", $Current_New_Entry_Block_Number+1, $New_Entires_Number_Of_Blocks, $Current_New_Entries_Display_Amount);
+			$HTML_Display_Text = $HTML_Display_Text.$HTML_current_table_info;
+
+			return $HTML_Display_Text;
 		}
 
 
