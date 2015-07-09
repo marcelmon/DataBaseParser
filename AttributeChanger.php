@@ -464,17 +464,27 @@
 				
 			}
 			$HTML_Display_Text = $HTML_Display_Text.'</table>';
-			$HTML_submit_buttons = '<input type="submit" value="Submit_all"></input>';
+			$HTML_submit_buttons = '<input type="submit" name="New_Entries_Table_Submit_all" value="New_Entries_Table_Submit_all"></input>';
 
 			if($Current_New_Entry_Block_Number > 0) {
-				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" value="New_Entries_Table_Previous_Page"></input>';
+				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" name="value="New_Entries_Table_Previous_Page" value="New_Entries_Table_Previous_Page"></input>';
 			}
 
 			if($Current_New_Entry_Block_Number < $New_Entires_Number_Of_Blocks) {
-				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" value="New_Entries_Table_Next_page"></input>';
+				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" name="New_Entries_Table_Next_page" value="New_Entries_Table_Next_page"></input>';
 			}
 
-			$HTML_Display_Size_Submit = '<select name="New_Entry_Table_size_select"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
+			switch($Current_New_Entries_Display_Amount){
+				case 10:
+					$HTML_Display_Size_Submit = '<select name="Current_New_Entries_Display_Amount"><option value="10" checked>10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
+				case 100:
+					$HTML_Display_Size_Submit = '<select name="Current_New_Entries_Display_Amount"><option value="10">10</option><option value="100" checked>100</option><option value="1000">1000</option><option value="10000">10000</option>';
+				case 1000:
+					$HTML_Display_Size_Submit = '<select name="Current_New_Entries_Display_Amount"><option value="10">10</option><option value="100">100</option><option value="1000" checked>1000</option><option value="10000">10000</option>';
+				case 10000:
+					$HTML_Display_Size_Submit = '<select name="Current_New_Entries_Display_Amount"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000" checked>10000</option>';
+			}
+
 			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" value="New_Entry_Change_Size"></input>';
 
 			$HTML_Display_Text = $HTML_Display_Text.$HTML_submit_buttons.$HTML_Display_Size_Submit.'</form>';
@@ -507,7 +517,7 @@
 
 		function Initialize_Modify_Entries_Display() {
 
-			$Current_New_Entries_Display_Amount = 100;
+			$Current_Modify_Entries_Display_Amount = 100;
 
 			$Modify_Enties_Total_Amount = count($Modify_Entry_List);
 
@@ -689,24 +699,34 @@
 				$HTML_Display_Text = $HTML_Display_Text.$HTML_table_row.'</tr>';
 				
 			}
-			
+
 			$HTML_Display_Text = $HTML_Display_Text.'</table>';
-			$HTML_submit_buttons = '<input type="submit" value="Submit_all"></input>';
+			$HTML_submit_buttons = '<input type="submit" name ="Modify_Entries_Table_Submit_all" value="Submit_all"></input>';
 
 			if($Current_New_Entry_Block_Number > 0) {
-				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" value="New_Entries_Table_Previous_Page"></input>';
+				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" name ="Modify_Entries_Table_Previous_Page" value="Modify_Entries_Table_Previous_Page"></input>';
 			}
 
 			if($Current_New_Entry_Block_Number < $New_Entires_Number_Of_Blocks) {
-				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" value="New_Entries_Table_Next_page"></input>';
+				$HTML_submit_buttons = $HTML_submit_buttons.'<input type="submit" name ="Modify_Entries_Table_Next_page" value="Modify_Entries_Table_Next_page"></input>';
 			}
 
-			$HTML_Display_Size_Submit = '<select name="New_Entry_Table_size_select"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
-			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" value="New_Entry_Change_Size"></input>';
+			switch($Current_Modify_Entries_Display_Amount){
+				case 10:
+					$HTML_Display_Size_Submit = '<select name="Modify_Entry_Table_size_select"><option value="10" checked>10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
+				case 100:
+					$HTML_Display_Size_Submit = '<select name="Modify_Entry_Table_size_select"><option value="10">10</option><option value="100" checked>100</option><option value="1000">1000</option><option value="10000">10000</option>';
+				case 1000:
+					$HTML_Display_Size_Submit = '<select name="Modify_Entry_Table_size_select"><option value="10">10</option><option value="100">100</option><option value="1000" checked>1000</option><option value="10000">10000</option>';
+				case 10000:
+					$HTML_Display_Size_Submit = '<select name="Modify_Entry_Table_size_select"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000" checked>10000</option>';
+			}
+
+			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" name="Modify_Entry_Change_Size" value="Modify_Entry_Change_Size"></input>';
 
 			$HTML_Display_Text = $HTML_Display_Text.$HTML_submit_buttons.$HTML_Display_Size_Submit.'</form>';
 
-			$HTML_current_table_info = sprintf("Current Block : %d of %d. Displaying %d entires per page.", $Current_New_Entry_Block_Number+1, $New_Entires_Number_Of_Blocks, $Current_New_Entries_Display_Amount);
+			$HTML_current_table_info = sprintf("Current Block : %d of %d. Displaying %d entires per page.", $Current_Modify_Entry_Block_Number+1, $Modify_Entires_Number_Of_Blocks, $Current_Modify_Entries_Display_Amount);
 			$HTML_Display_Text = $HTML_Display_Text.$HTML_current_table_info;
 
 			return $HTML_Display_Text;
