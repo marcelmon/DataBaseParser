@@ -1,5 +1,6 @@
 <?php
 
+	require_once dirname(__FILE__).'/commonlib/lib/userlib.php';
 /*
 
 	AREA OF PRACTICE IS AN ATTRIBUTE FIELD TO ADD
@@ -321,20 +322,50 @@
 
 			$New_Enties_Total_Amount = count($New_Entry_List);
 
-			$New_Entires_Number_Of_Blocks = $New_Enties_Total_Amount/$Current_New_Entries_Display_Amount + (($New_Enties_Total_Amount % $New_Enties_Total_Amount)? 1:0);
+			$New_Entires_Number_Of_Blocks = $New_Enties_Total_Amount/$Current_New_Entries_Display_Amount + (($Current_New_Entries_Display_Amount % $New_Enties_Total_Amount)? 1:0);
 		
 			$Current_New_Entry_Block_Number = 0;
 
-			$Current_Display_Text = Get_New_Entry_Table_Block(0);
 			//need to finish this
 			
 		}
 
+		function New_Entry_Change_Display_Amount($New_Amount) {
+			if($New_Amount != (10|100|1000|10000)) {
+				return false;
+			}
+			$Current_New_Entries_Display_Amount = $New_Amount;
 
-		function Get_New_Entry_Table_Block($Block_Number) {
+			$New_Entires_Number_Of_Blocks = $New_Enties_Total_Amount/$Current_New_Entries_Display_Amount + (($Current_New_Entries_Display_Amount % $New_Enties_Total_Amount)? 1:0);
 
-			//should set background colors, maybe, merr
-			$Current_New_Entry_Block_Number = $Block_Number;
+			$Current_New_Entry_Block_Number = 0;
+			return true;
+		}
+
+		function New_Entry_Display_Next_Page() {
+			if($Current_New_Entry_Block_Number < $New_Entires_Number_Of_Blocks-1) {
+				$Current_New_Entry_Block_Number++;
+				return Get_Modify_Entry_Table_Block($Current_New_Entry_Block_Number);
+			}
+			else{
+				//because there are no more blocks
+				return false;
+			}
+		}
+
+		function New_Entry_Display_Previous_Page() {
+			if($Current_New_Entry_Block_Number > 0) {
+				$Current_New_Entry_Block_Number--;
+				return Get_Modify_Entry_Table_Block($Current_New_Entry_Block_Number);
+			}
+			else{
+				//because there are no more blocks
+				return false;
+			}
+		}
+
+		function Get_New_Entry_Table_Block() {
+
 			$Current_New_Entry_Block = array_slice($New_Entry_List, $Current_New_Entry_Block_Number*$Current_New_Entries_Display_Amount, $Current_New_Entries_Display_Amount);
 
 
@@ -476,16 +507,16 @@
 
 			switch($Current_New_Entries_Display_Amount){
 				case 10:
-					$HTML_Display_Size_Submit = '<select name="Current_New_Entries_Display_Amount"><option value="10" checked>10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
+					$HTML_Display_Size_Submit = '<select name="New_Entries_New_Display_Amount"><option value="10" checked>10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
 				case 100:
-					$HTML_Display_Size_Submit = '<select name="Current_New_Entries_Display_Amount"><option value="10">10</option><option value="100" checked>100</option><option value="1000">1000</option><option value="10000">10000</option>';
+					$HTML_Display_Size_Submit = '<select name="New_Entries_New_Display_Amount"><option value="10">10</option><option value="100" checked>100</option><option value="1000">1000</option><option value="10000">10000</option>';
 				case 1000:
-					$HTML_Display_Size_Submit = '<select name="Current_New_Entries_Display_Amount"><option value="10">10</option><option value="100">100</option><option value="1000" checked>1000</option><option value="10000">10000</option>';
+					$HTML_Display_Size_Submit = '<select name="New_Entries_New_Display_Amount"><option value="10">10</option><option value="100">100</option><option value="1000" checked>1000</option><option value="10000">10000</option>';
 				case 10000:
-					$HTML_Display_Size_Submit = '<select name="Current_New_Entries_Display_Amount"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000" checked>10000</option>';
+					$HTML_Display_Size_Submit = '<select name="New_Entries_New_Display_Amount"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000" checked>10000</option>';
 			}
 
-			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" value="New_Entry_Change_Size"></input>';
+			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" name="New_Entry_Change_Display_Amount" value="New_Entry_Change_Display_Amount"></input>';
 
 			$HTML_Display_Text = $HTML_Display_Text.$HTML_submit_buttons.$HTML_Display_Size_Submit.'</form>';
 
@@ -529,9 +560,41 @@
 			
 		}	
 
-		function Get_Modify_Entry_Table_Block($Block_Number) {
-			//should set background colors, maybe, merr
-			$Current_Modify_Entry_Block_Number = $Block_Number;
+		function Modify_Entry_Display_Next_Page() {
+			if($Current_Modify_Entry_Block_Number < $Modify_Entires_Number_Of_Blocks-1) {
+				$Current_Modify_Entry_Block_Number++;
+				return Get_Modify_Entry_Table_Block($Current_Modify_Entry_Block_Number);
+			}
+			else{
+				//because there are no more blocks
+				return false;
+			}
+		}
+
+		function Modify_Entry_Display_Previous_Page() {
+			if($Current_Modify_Entry_Block_Number > 0) {
+				$Current_Modify_Entry_Block_Number--;
+				return Get_Modify_Entry_Table_Block($Current_Modify_Entry_Block_Number);
+			}
+			else{
+				//because there are no more blocks
+				return false;
+			}
+		}
+
+		function Modify_Entry_Change_Display_Amount($New_Amount) {
+			if($New_Amount != (10|100|1000|10000)) {
+				return false;
+			}
+			$Current_Modify_Entries_Display_Amount = $New_Amount;
+
+			$Modify_Entires_Number_Of_Blocks = $Modify_Enties_Total_Amount/$Current_Modify_Entries_Display_Amount + (($Current_Modify_Entries_Display_Amount % $Modify_Enties_Total_Amount)? 1:0);
+
+			$Current_New_Entry_Block_Number = 0;
+			return true;
+		}
+
+		function Get_Modify_Entry_Table_Block() {
 
 			$Current_Modify_Entry_Block = array_slice($Modify_Entry_List, $Current_Modify_Entry_Block_Number*$Current_Modify_Entries_Display_Amount, $Current_Modify_Entries_Display_Amount);
 
@@ -713,16 +776,16 @@
 
 			switch($Current_Modify_Entries_Display_Amount){
 				case 10:
-					$HTML_Display_Size_Submit = '<select name="Modify_Entry_Table_size_select"><option value="10" checked>10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
+					$HTML_Display_Size_Submit = '<select name="Modify_Entries_New_Display_Amount"><option value="10" checked>10</option><option value="100">100</option><option value="1000">1000</option><option value="10000">10000</option>';
 				case 100:
-					$HTML_Display_Size_Submit = '<select name="Modify_Entry_Table_size_select"><option value="10">10</option><option value="100" checked>100</option><option value="1000">1000</option><option value="10000">10000</option>';
+					$HTML_Display_Size_Submit = '<select name="Modify_Entries_New_Display_Amount"><option value="10">10</option><option value="100" checked>100</option><option value="1000">1000</option><option value="10000">10000</option>';
 				case 1000:
-					$HTML_Display_Size_Submit = '<select name="Modify_Entry_Table_size_select"><option value="10">10</option><option value="100">100</option><option value="1000" checked>1000</option><option value="10000">10000</option>';
+					$HTML_Display_Size_Submit = '<select name="Modify_Entries_New_Display_Amount"><option value="10">10</option><option value="100">100</option><option value="1000" checked>1000</option><option value="10000">10000</option>';
 				case 10000:
-					$HTML_Display_Size_Submit = '<select name="Modify_Entry_Table_size_select"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000" checked>10000</option>';
+					$HTML_Display_Size_Submit = '<select name="Modify_Entries_New_Display_Amount"><option value="10">10</option><option value="100">100</option><option value="1000">1000</option><option value="10000" checked>10000</option>';
 			}
 
-			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" name="Modify_Entry_Change_Size" value="Modify_Entry_Change_Size"></input>';
+			$HTML_Display_Size_Submit = $HTML_Display_Size_Submit.'<input type="submit" name="New_Entry_Change_Display_Amount" value="New_Entry_Change_Display_Amount"></input>';
 
 			$HTML_Display_Text = $HTML_Display_Text.$HTML_submit_buttons.$HTML_Display_Size_Submit.'</form>';
 
@@ -731,6 +794,52 @@
 
 			return $HTML_Display_Text;
 		}
+
+
+		$Failed_New_Entries;
+
+
+		function Push_New_Entries() {
+			foreach ($Commited_New_Entires as $email_key => $new_attributes_and_values) {
+				$exists = Sql_Fetch_Row_Query(sprintf('select id from %s where email = "%s"', $GLOBALS['tables']['user'],$email_key));
+				if($exists) {
+					$Failed_New_Entries[$email_key] = $new_attributes_and_values;
+				}
+				else{
+
+					$new_user_id = addNewUser($email_key);
+					foreach ($new_attributes_and_values as $this_attribute_name => $this_attribute_value) {
+						if($attribute_list[$this_attribute_name]['type'] == 'checkboxgroup') {
+							$this_attribute_value = implode(',', $this_attribute_value);
+						}
+						//need a way for 'STICKY' attributes
+						saveUserAttribute($new_user_id, $attribute_list[$this_attribute_name]['id'], $this_attribute_value);
+					}	
+				}
+			}
+		}
+
+		$Failed_Modify_Entries;
+		function Push_Modify_Entries() {
+
+			foreach ($Commited_Modify_Entries as $email_key => $modify_attributes_and_values) {
+				$exists = Sql_Fetch_Row_Query(sprintf('select id from %s where email = "%s"', $GLOBALS['tables']['user'],$email_key));
+				if(!$exists) {
+					$Failed_Modify_Entries[$email_key] = $modify_attributes_and_values;
+				}
+				else{
+					$modify_user_id = $exists[0];
+					foreach ($modify_attributes_and_values as $this_attribute_name => $this_attribute_value) {
+						if($attribute_list[$this_attribute_name]['type'] == 'checkboxgroup') {
+							$this_attribute_value = implode(',', $this_attribute_value);
+						}
+						//need a way for 'STICKY' attributes
+						saveUserAttribute($new_user_id, $attribute_list[$this_attribute_name]['id'], $this_attribute_value);
+					}
+				}
+			}
+		}
+
 
 
 

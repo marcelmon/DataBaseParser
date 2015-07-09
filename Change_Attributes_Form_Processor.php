@@ -170,37 +170,91 @@
         }
     }   
 
-    if(isset($_POST['New_Entries_Table_Submit_All'])) {
+    if(isset($_POST['New_Entries_Table_Submit_All']) && $_POST['New_Entries_Table_Submit_All'] == 'New_Entries_Table_Submit_All' ) {
+        Initialize_Modify_Entries_Display();
+        $HTML_TO_DISPLAY = Get_New_Entry_Table_Block(0);
+        //HERE NEED TO SETUP HEADERS TO PRINT
 
     }
 
-    if(isset($_Post['New_Entries_Table_Next_Page'])) {
-
+    if(isset($_Post['New_Entries_Table_Next_Page']) && $_Post['New_Entries_Table_Next_Page'] == 'New_Entries_Table_Next_Page') {
+        $HTML_TO_DISPLAY = New_Entry_Display_Next_Page();
+        if($HTML_TO_DISPLAY == false) {
+            $HTML_TO_DISPLAY = Get_New_Entry_Table_Block(NEED TO GET CURRENT BLOCK CHANGE THIS FUNC);
+        }
+           
+        //headers
     }
 
-    if(isset($_Post['New_Entries_Table_Next_Page'])) {
-
-    }
- 
-    if(isset($_Post['New_Entries_Table_Next_Page'])) {
-
-    }
-
-
-
-    if(isset($_POST['Modify_Entries_Table_Submit_All'])) {
-
-    }
-
-    if(isset($_Post['Modify_Entries_Table_Next_Page'])) {
-
-    }
-
-    if(isset($_Post['Modify_Entries_Table_Next_Page'])) {
-
+    if(isset($_Post['New_Entries_Table_Previous_Page']) && $_Post['New_Entries_Table_Previous_Page'] == 'New_Entries_Table_Previous_Page') {
+        $HTML_TO_DISPLAY = New_Entry_Display_Previous_Page();
+        if($HTML_TO_DISPLAY == false) {
+            $HTML_TO_DISPLAY = Get_New_Entry_Table_Block(NEED TO GET CURRENT BLOCK CHANGE THIS FUNC);
+        }
+        //headers
     }
  
-    if(isset($_Post['Modify_Entries_Table_Next_Page'])) {
+    if(isset($_Post['New_Entry_Change_Display_Amount']) && $_Post['New_Entry_Change_Display_Amount'] == 'New_Entry_Change_Display_Amount') {
+
+        if(isset($_POST['New_Entries_New_Display_Amount'])) {
+            if($_POST['New_Entries_New_Display_Amount'] != (10|100|1000|10000)){
+
+            }
+            else{
+                if(New_Entry_Change_Display_Amount($_POST['New_Entries_New_Display_Amount']) != true) {
+
+                }
+                else{
+                    
+
+                }
+            }
+        }
+        $HTML_TO_DISPLAY = Get_New_Entry_Table_Block();
+        
+    }
+
+
+
+    if(isset($_POST['Modify_Entries_Table_Submit_All']) && $_POST['Modify_Entries_Table_Submit_All'] == 'Modify_Entries_Table_Submit_All' ) {
+
+        //NEED TO ACTUALLY PROCESS ALL THE NEW VALUES
+    }
+
+    if(isset($_Post['Modify_Entries_Table_Next_Page']) && $_Post['Modify_Entries_Table_Next_Page'] == 'Modify_Entries_Table_Next_Page') {
+        $HTML_TO_DISPLAY = Modify_Entry_Display_Next_Page();
+        if($HTML_TO_DISPLAY == false) {
+            $HTML_TO_DISPLAY = Get_Modify_Entry_Table_Block(NEED TO GET CURRENT BLOCK CHANGE THIS FUNC);
+        }
+           
+        //headers
+    }
+
+    if(isset($_Post['Modify_Entries_Table_Previous_Page']) && $_Post['Modify_Entries_Table_Previous_Page'] == 'Modify_Entries_Table_Previous_Page') {
+        $HTML_TO_DISPLAY = Modify_Entry_Display_Previous_Page();
+        if($HTML_TO_DISPLAY == false) {
+            $HTML_TO_DISPLAY = Get_Modify_Entry_Table_Block(NEED TO GET CURRENT BLOCK CHANGE THIS FUNC);
+        }
+        //headers
+    }
+ 
+    if(isset($_Post['Modify_Entry_Change_Display_Amount']) && $_Post['Modify_Entry_Change_Display_Amount'] == 'Modify_Entry_Change_Display_Amount') {
+
+        if(isset($_POST['Modify_Entries_New_Display_Amount'])) {
+            if($_POST['Modify_Entries_New_Display_Amount'] != (10|100|1000|10000)){
+
+            }
+            else{
+                if(Modify_Entry_Change_Display_Amount($_POST['Modify_Entries_New_Display_Amount']) != true) {
+
+                }
+                else{
+                    
+
+                }
+            }
+        }
+        $HTML_TO_DISPLAY = Get_Modify_Entry_Table_Block();
         
     }
  
