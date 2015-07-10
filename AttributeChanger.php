@@ -71,12 +71,13 @@
 		function Initialize_Attribute_Changer() {
 			//get all attributes and their info
 			$query = sprintf('select * from %s', $GLOBALS['tables']['attribute']);
-			$attribute_data_rows = Sql_Fetch_Row_Query($query);	
+			$attribute_data_return = Sql_Query($query);	
 
-			if($attribute_data_rows) {
+
+			if($attribute_data_return) {
 				$attribute_list = array();
 
-				foreach ($attribute_data_rows as $key => $attribute_data) {
+				while($attribute_data = Sql_fetch_array($attribute_data_return)) {
 					if(!isset( ($attribute_data['id']) | ($attribute_data['name']) | ($attribute_data['type']) )) {
 						//not known format, cannot use
 					}
@@ -91,7 +92,7 @@
 								//must query to get the allowed values
 								$value_table_name = $table_prefix."listattr_".$attribute_data["tablename"];
 								$value_query = sprintf("select name from %s", $value_table_name);
-								$allowed_values_res = Sql_Fetch_Row_Query($value_query);
+								$allowed_values_res = Sql_Query($value_query);
 
 
 								if($allowed_value_res) {
@@ -130,19 +131,19 @@
 				return false;
 			}
 			$email = $entry['email'];
-			unset($entry['email']);
+			array_shift($entry);
 
 			if(!filter_var($email, FILTER_VALIDATE_EMAIL) ){
 				return false;
 			}
 
 			$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
-			$user_result = Sql_Query($entry_query);
+			$user_sql_result = Sql_Query($entry_query);
 
 			//0 if there are no attributes, is only existence
 			if(!is_array($entry) == 0) {
 				//if there is a user then already done
-				if($user_result){
+				if($user_sql_result){
 					return true;
 				}
 				else{
@@ -156,13 +157,21 @@
 					}
 				}
 			}
+			$user_result = Sql_fetch_array($user_sql_result);
+
 			//if there are attributes, must check each value to look for update
 			foreach ($entry as $attribute => $new_attribute_value) {
 
 				if(isset($attribute_list[$attribute])) {
 					if(isset($user_result['id'])) {
-						$attribute_query = sprintf("select * from %s where primary key = %s", $GLOBALS['tables']['user_attribute'], $attribute_list[$attribute]['id'].$user_result['id']);
-						$current_user_attribute = Sql_Query($attribute_query);
+						$attribute_query = sprintf("select value from %s where attributeid = %s and userid = %s", $GLOBALS['tables']['user_attribute'], $attribute_list[$attribute]['id'], $user_result['id']);
+						$current_attribute_return = Sql_Fetch_Row_Query($attribute_query);
+						if(!$current_attribute_return) {
+							unset($current_user_attribute);
+						}
+						else{
+							$current_user_attribute = $current_attribute_return[0];
+						}
 					}
 
 
@@ -198,21 +207,27 @@
 					//these are multiple choice types, the new attribute value must match
 					else if($attribute_list[$attribute]['type'] == 'checkboxgroup') {
 
-						$exploded_attribute_values_array = explode(',', $value);
+						$exploded_attribute_values_array = explode(',', $new_attribute_value);
 
-						$allowed_exploded_values = explode(',', $attribute_list[$attribute]['allowed_values']);
 						$has_attributes = false;
 						if(isset($user_result['id'])) {
 
 							if($current_user_attribute != null) {
-								$current_user_attribute_array = explode(',', $current_user_attribute);
+								$current_user_attribute_value_id_array = explode(',', $current_user_attribute);
+								foreach ($current_user_attribute_value_id_array as $key => $attribute_value_id) {
+									$attribute_value_query = sprintf("select name from %s where id = %d", $attribute_list[$attribute]['tablename'], $attribute_value_id);
+									$attribute_value_return = Sql_Query($attribute_value_query);
+									if($attribute_value_return) {
+										array_push($current_user_attribute_array, Sql_Fetch_Row($attribute_value_return)[0]);
+									}
+								}
 								$has_attributes = true;
 							}
 						}
 
 						foreach ($exploded_attribute_values_array as $key => $exploded_attribute_value) {
 
-							if(in_array($exploded_attribute_value, $allowed_exploded_values)) {
+							if(in_array($exploded_attribute_value, $attribute_list[$attribute]['allowed_values'])) {
 
 								if($has_attributes == true) {
 									//user definately exists, need to check if the current value is already one selected
@@ -260,6 +275,8 @@
 				}
 			}
 		}
+
+//////////////////////////////////////
 
 		function Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_list, $Duplicate_Email_List, $Duplicate_Attributes_List) {
 
