@@ -23,8 +23,9 @@
 			}
 			else{
 				$GLOBALS['tables']['pluggins']['AttributeChanger']['isOn'] = true;
-				$AttributeChangerPluggin = $$GLOBALS['tables']['pluggins']['AttributeChanger'];
+				$AttributeChangerPluggin = $GLOBALS['tables']['pluggins']['AttributeChanger'];
 			}
+			$tables=$GLOBALS['tables'];
 		}
 
 		function testAttributeChangerOn() {
@@ -42,6 +43,7 @@
 				if(!isset($AttributeChanger)){
 					$AttributeChanger = $GLOBALS['tables']['pluggins']['AttributeChanger'];
 				}
+				$tables=$GLOBALS['tables'];
 				return true;
 			}
 		}
@@ -66,10 +68,10 @@
 
 		$attribute_list;
 
-		function Initialize() {
+		function Initialize_Attribute_Changer() {
 			//get all attributes and their info
 			$query = sprintf('select * from %s', $GLOBALS['tables']['attribute']);
-			$attribute_data_rows = Sql_Query($query);	
+			$attribute_data_rows = Sql_Fetch_Row_Query($query);	
 
 			if($attribute_data_rows) {
 				$attribute_list = array();
@@ -88,13 +90,17 @@
 							else{
 								//must query to get the allowed values
 								$value_table_name = $table_prefix."listattr_".$attribute_data["tablename"];
-								$value_query = sprintf("select * from %s", $value_table_name);
-								$allowed_values  = Sql_Query($value_query);
-								if($allowed_values) {
-									$attribute_list[$attribute_data['name']]['allowed_values'] = $allowed_values;
+								$value_query = sprintf("select name from %s", $value_table_name);
+								$allowed_values_res = Sql_Fetch_Row_Query($value_query);
+
+
+								if($allowed_value_res) {
+									while($row = Sql_Fetch_Row_Query($allowed_values_res)) {
+										array_push($attribute_list[$attribute_data['name']]['allowed_values'], $row['name']);
+									}
 								}
 								else{
-									$attribute_list[$attribute_data['name']]['allowed_values'] = '';
+									unset($attribute_list[$attribute_data['name']]['allowed_values']);
 								}
 							}
 						}
@@ -134,7 +140,7 @@
 			$user_result = Sql_Query($entry_query);
 
 			//0 if there are no attributes, is only existence
-			if(count($entry) == 0) {
+			if(!is_array($entry) == 0) {
 				//if there is a user then already done
 				if($user_result){
 					return true;
@@ -161,7 +167,7 @@
 
 
 					//these are single choice values
-					if($attribute_list[$attribute]['type'] == "radio"|"select") {
+					if($attribute_list[$attribute]['type'] == "radio"|"select"|'checkbox') {
 
 						//must check if the possible new value is an allowed value
 						if(in_array($new_attribute_value, $attribute_list[$attribute]['allowed_values'])) {
@@ -190,7 +196,7 @@
 					}
 
 					//these are multiple choice types, the new attribute value must match
-					else if($attribute_list[$attribute]['type'] == 'checkboxgroup'|'checkbox') {
+					else if($attribute_list[$attribute]['type'] == 'checkboxgroup') {
 
 						$exploded_attribute_values_array = explode(',', $value);
 
