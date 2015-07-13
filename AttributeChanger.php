@@ -858,32 +858,64 @@
 								$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 							}
 						}
+						//is some other type of input
 						else{
 							//will only be one currently set value
-							if($Current_Modify_Entry_Block[$email_key][$attribute_name] == $Commited_Modify_Entries[$email_key][$attribute_name]) {
-								$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s" checked>%s</input><br>', $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+							foreach ($Current_Modify_Entry_Block[$email_key][$attribute_name] as $key => $attribute_value) {
+								if($key == 0) {
+									if(!isset($Current_user_values[$email_key]['attributes'][$attribute_name])) {
+										if($Current_Modify_Entry_Block[$email_key][$attribute_name] == $Commited_Modify_Entries[$email_key][$attribute_name]) {
+											$HTML_attribute_value_input = sprintf('<input type="radio" class="Modify_Entry_Safe_Value_Attribute_%s" name="Modify_Entry_List[%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+										}
+										else {
+											$HTML_attribute_value_input = sprintf('<input type="radio" class="MOdify_Entry_Safe_Value_Attribute_%s" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+										}
+									}
+									else {
+										if($Current_Modify_Entry_Block[$email_key][$attribute_name] == $Commited_Modify_Entries[$email_key][$attribute_name]) {
+											$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s" checked>%s</input><br>', $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+										}
+										else {
+											$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+										}
+									}				
+								}
+								else {
+									if($Current_Modify_Entry_Block[$email_key][$attribute_name] == $Commited_Modify_Entries[$email_key][$attribute_name]) {
+										$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s" checked>%s</input><br>', $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+									}
+									else {
+										$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+									}
+								}
+								$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 							}
-							else {
-								$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
-							}
-							$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 						}
 					}
 					else{
 						if($attribute_info['type'] == 'checkboxgroup') {
-
-							foreach ($Current_Modify_Entry_Block[$email_key][$attribute_name] as $key => $group_attribute_value) {
-								
-								$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s">%s</input><br>', $email_key, $attribute_name, $group_attribute_value, $group_attribute_value);
-								
+							foreach ($Current_Modify_Entry_Block[$email_key][$attribute_name] as $key => $attribute_value) {
+								$HTML_attribute_value_input = sprintf('<input type="checkbox" class="Modify_Entry_Checkbox_Value_Attribute_%s" name="Modify_Entry_List[%s][%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);								
 								$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 							}
+								
+							
 						}
 						else{
-							//will only be one currently set value
-							
-							$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
-							$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
+							foreach ($Current_Modify_Entry_Block[$email_key][$attribute_name] as $key => $attribute_value) {
+								if($key == 0) {
+									if(!isset($Current_user_values[$email_key]['attributes'][$attribute_name])) {
+										$HTML_attribute_value_input = sprintf('<input type="radio" class="Modify_Entry_Safe_Value_Attribute_%s" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+									}
+									else {
+										$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+									}
+								}
+								else{
+									$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $Current_Modify_Entry_Block[$email_key][$attribute_name], $Current_Modify_Entry_Block[$email_key][$attribute_name]);
+								}
+								$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
+							}
 						}
 					}
 					$HTML_table_row = $HTML_table_row.'</td>';
