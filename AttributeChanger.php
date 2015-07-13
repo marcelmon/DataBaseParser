@@ -229,13 +229,11 @@
 								//the return query for the user,attrubute does not match the new possible attribute value
 								if($Current_Users_Values[$email][$attribute] != $new_attribute_value) {
 									Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
-
 								}
 								else{
 									//already equals the currenttly set attribute value
 								}
 							}
-
 							else{
 								//no user info, add info to list
 								Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $New_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
@@ -288,6 +286,8 @@
 							}
 							else if(filter_var($month , FILTER_VALIDATE_INT,  array('options' => array(  'min_range' => 1, 'max_range' => 12) )) == false) {
 							}
+
+							##Consider adding date validate to this date as max
 							else if(filter_var($year , FILTER_VALIDATE_INT,  array('options' => array(  'min_range' => 1900, 'max_range' => 3000) )) == false) {
 							}
 							else{
@@ -393,7 +393,7 @@
 		//default 100
 		$Current_New_Entries_Display_Amount;
 
-		$New_Enties_Total_Amount;
+		$New_Entries_Total_Amount;
 
 		$New_Entires_Number_Of_Blocks;
 
@@ -407,9 +407,9 @@
 
 			$Current_New_Entries_Display_Amount = 100;
 
-			$New_Enties_Total_Amount = count($New_Entry_List);
+			$New_Entries_Total_Amount = count($New_Entry_List);
 
-			$New_Entires_Number_Of_Blocks = $New_Enties_Total_Amount/$Current_New_Entries_Display_Amount + (($Current_New_Entries_Display_Amount % $New_Enties_Total_Amount)? 1:0);
+			$New_Entires_Number_Of_Blocks = $New_Entries_Total_Amount/$Current_New_Entries_Display_Amount + (($New_Entries_Total_Amount % $Current_New_Entries_Display_Amount)? 1:0);
 		
 			$Current_New_Entry_Block_Number = 0;
 
@@ -418,12 +418,19 @@
 		}
 
 		function New_Entry_Change_Display_Amount($New_Amount) {
-			if($New_Amount != (10|100|1000|10000)) {
+			if($New_Amount != (10|100|1000|10000|'ALL')) {
 				return false;
 			}
+			if($Current_New_Entries_Display_Amount == 'ALL') {
+				$New_Entires_Number_Of_Blocks =1;
+				$Current_New_Entries_Display_Amount = $New_Entries_Total_Amount;
+				$Current_New_Entry_Block_Number = 0;
+				return true;
+			}
+
 			$Current_New_Entries_Display_Amount = $New_Amount;
 
-			$New_Entires_Number_Of_Blocks = $New_Enties_Total_Amount/$Current_New_Entries_Display_Amount + (($Current_New_Entries_Display_Amount % $New_Enties_Total_Amount)? 1:0);
+			$New_Entires_Number_Of_Blocks = $New_Entries_Total_Amount/$Current_New_Entries_Display_Amount + (($New_Entries_Total_Amount % $Current_New_Entries_Display_Amount)? 1:0);
 
 			$Current_New_Entry_Block_Number = 0;
 			return true;
@@ -460,22 +467,30 @@
 
 			$HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="New_User_Attribute_Select_Table_Block__%d">', $Current_New_Entry_Block_Number);
 
-			$HTML_table_row = '<tr><td>EMAIL</td>';
+			$HTML_table_row = sprintf('<tr><td>EMAIL<br><input type="button" id="New_Entry_Include_All_Emails" name="New_Entry_Include_All_Emails" value="Include All Emails" onClick="checkAll_NewEntry_Emails()"></input>/td>';
 
 			foreach ($attribute_list as $attribute_name => $attribute_info) {
-				$HTML_table_row = $HTML_table_row.sprintf('<td>%s<input type="CHECKBOX" name="New_Entry_Attribute_Column_Select[%s]" value="checked">',$attribute_name, $attribute_name);
+				$HTML_table_row = $HTML_table_row.sprintf('<td>%s<br><input type="CHECKBOX" name="New_Entry_Attribute_Column_Select[%s]" value="checked">Include This Attribute</input>',$attribute_name, $attribute_name);
+				if($attribute_info['type'] === 'checkboxgroup') {
+					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="New_Entry_Include_All_Checkboxgroup_%s" value="Include All Checkboxgroup Values" onClick="checkAll_NewEntry_CheckboxGroup(%s)"></input>', $attribute_name, $attribute_name);
+					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="New_Entry_Remove_All_Checkboxgroup_%s" value="Remove All Checkboxgroup Values" onClick="removeAll_NewEntry_CheckboxGroup(%s)"></input>', $attribute_name, $attribute_name);
+				}
+				else{
+					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="New_Entry_Include_All_Safe_Values_%s" value="Include All Safe Values" onClick="checkAll_NewEntry_SafeValues(%s)></input></td>', $attribute_name, $attribute_name);
+					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="New_Entry_Remove_All_Safe_Values_%s" value="Remove All Safe Values" onClick="removeAll_NewEntry_SafeValues(%s)></input></td>', $attribute_name, $attribute_name);
+				}
 			}
 
-			$HTML_Display_Text = $HTML_Display_Text.'</tr>';
+			$HTML_Display_Text = $HTML_Display_Text.$HTML_table_row.'</tr>';
 
 			foreach ($Current_New_Entry_Block as $email_key => $new_user_attributes_and_values) {
 
 				if(isset($Commited_New_Entires[$email_key]) {
-					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" name="New_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input></td>',$email_key, $email_key);
+					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="New_Entry_Email" name="New_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input></td>',$email_key, $email_key);
 				}
 
 				else{
-					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" name="New_Entry_List[%s][\'include\']" value="include">Include This Email</input></td>',$email_key, $email_key);
+					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="New_Entry_Email" name="New_Entry_List[%s][\'include\']" value="include">Include This Email</input></td>',$email_key, $email_key);
 				}
 
 				//commited_new_entries[email]: attribute,value
@@ -507,12 +522,25 @@
 
 									if($Commited_New_Entires[$email_key][$attribute_name] == $attribute_value) {
 										//if the attribute value is the already selected, mark as checked
-										$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s" checked>%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+										if($key == 0) {
+											$HTML_attribute_value_input = sprintf('<input type="radio"  class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s" checked>%s</input>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
+
+										}
+										else{
+											$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s" checked>%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+										}
+										
 
 									}
 									else{
 										//else not yet selected so just create the input
-										$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s">%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+										if($key == 0) {
+											$HTML_attribute_value_input = sprintf('<input type="radio" class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s">%s</input>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
+
+										}
+										else{
+											$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s">%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+										}
 									}
 
 									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
@@ -524,11 +552,11 @@
 									if(in_array($attribute_value, $selectedGroupValues)) {
 										//the current attribute value should already be checked
 
-										$HTML_attribute_value_input = sprintf('<input type="checkbox" name="New_Entry_List[%s][%s][]" value="%s" checked>%s</input><br>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+										$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
 									}
 									else{
 										//not already checked
-										$HTML_attribute_value_input = sprintf('<input type="checkbox" name="New_Entry_List[%s][%s][]" value="%s">%s</input><br>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+										$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
 									}
 									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
 
@@ -555,16 +583,20 @@
 							switch($attribute_info['type']){
 
 								case "textarea"|"textline"|"checkbox"|"hidden"|"date": 
-
-									$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-
+									if($key == 0) {
+										$HTML_attribute_value_input = sprintf('<input type="radio" class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
+									}
+									else {
+										$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+									}
+									
 									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
 									break;
 								
 
 								case "checkboxgroup": 
 									
-									$HTML_attribute_value_input = sprintf('<input type="checkbox" name="New_Entry_List[%s][%s][]" value="%s">%s</input><br>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+									$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
 
 									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
 
@@ -694,12 +726,21 @@
 
 			foreach ($attribute_list as $attribute_name => $attribute_info) {
 				$HTML_table_row = $HTML_table_row.sprintf('<td>%s<input type="CHECKBOX" name="Modify_Entry_Attribute_Column_Select[%s]" value="checked">',$attribute_name, $attribute_name);
+				if($attribute_info['type'] === 'checkboxgroup') {
+					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="Modify_Entry_Include_All_Checkboxgroup_%s" value="Include All Checkboxgroup Values" onClick="checkAll_ModifyEntry_CheckboxGroup(%s)"></input>', $attribute_name, $attribute_name);
+					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="Modify_Entry_Remove_All_Checkboxgroup_%s" value="Remove All Checkboxgroup Values" onClick="removeAll_ModifyEntry_CheckboxGroup(%s)"></input>', $attribute_name, $attribute_name);
+				}
+				else{
+					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="Modify_Entry_Include_All_Safe_Values_%s" value="Include All Safe Values" onClick="checkAll_ModifyEntry_SafeValues(%s)></input></td>', $attribute_name, $attribute_name);
+					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="Modify_Entry_Remove_All_Safe_Values_%s" value="Remove All Safe Values" onClick="removeAll_ModifyEntry_SafeValues(%s)></input></td>', $attribute_name, $attribute_name);
+				}
 			}
 
 			$HTML_Display_Text = $HTML_Display_Text.'</tr>';
 
 			foreach ($Current_Modify_Entry_Block as $email_key => $modify_user_attributes_and_values) {
 
+				//THIS SHOULD NEVER HAPPEN!!!!!!!
 				if(!isset($Current_user_values[$email_key])) {
 
 					$user_query = sprintf('select id from %s where email = %s', $GLOBALS['tables']['user'], $email_key);
@@ -727,12 +768,13 @@
 				}
 				
 				if(isset($Commited_Modify_Entries[$email_key])) {
-					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" name="Modify_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input></td>',$email_key, $email_key);
+					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="Modify_Entry_Email" name="Modify_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input></td>',$email_key, $email_key);
 				}
 				else{
-					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" name="Modify_Entry_List[%s][\'include\']" value="include">Include This Email</input></td>',$email_key, $email_key);
+					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="Modify_Entry_Email" name="Modify_Entry_List[%s][\'include\']" value="include">Include This Email</input></td>',$email_key, $email_key);
 				}
 				
+
 				foreach ($attribute_list as $attribute_name => $attribute_info) {
 					$HTML_table_row = $HTML_table_row.'<td>';
 					
@@ -746,10 +788,10 @@
 								foreach ($currentlySetGroupValues as $key => $group_attribute_value) {
 									//these are the current set values, should make green background or w/e
 									if(in_array($group_attribute_value, $selectedGroupValues)) {
-										$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s" checked>%s</input><br>', $email_key, $attribute_name, $group_attribute_value, $group_attribute_value);
+										$HTML_attribute_value_input = sprintf('<input type="checkbox" class="Current_Modify_Checkbox_Value_%s" name="Modify_Entry_List[%s][%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $group_attribute_value, $group_attribute_value, $group_attribute_value);
 									}
 									else {
-										$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s">%s</input><br>', $email_key, $attribute_name, $group_attribute_value, $group_attribute_value);
+										$HTML_attribute_value_input = sprintf('<input type="checkbox" class="Current_Modify_Checkbox_Value_%s" name="Modify_Entry_List[%s][%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $group_attribute_value, $group_attribute_value, $group_attribute_value);
 									}
 									$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 								}
@@ -757,10 +799,10 @@
 							else{
 								//will only be one currently set value
 								if($Current_user_values[$email_key]['attributes'][$attribute_name] == $Commited_Modify_Entries[$email_key][$attribute_name]) {
-									$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s" checked>%s</input><br>', $email_key, $attribute_name, $Current_user_values[$email_key]['attributes'][$attribute_name], $Current_user_values[$email_key]['attributes'][$attribute_name]);
+									$HTML_attribute_value_input = sprintf('<input type="radio class="Current_Modify_Attribute_Value_%s" name="Modify_Entry_List[%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $Current_user_values[$email_key]['attributes'][$attribute_name], $Current_user_values[$email_key]['attributes'][$attribute_name]);
 								}
 								else {
-									$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $Current_user_values[$email_key]['attributes'][$attribute_name], $Current_user_values[$email_key]['attributes'][$attribute_name]);
+									$HTML_attribute_value_input = sprintf('<input type="radio" class="Current_Modify_Attribute_Value_%s" name="Modify_Entry_List[%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $Current_user_values[$email_key]['attributes'][$attribute_name], $Current_user_values[$email_key]['attributes'][$attribute_name]);
 								}
 								$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 							}
@@ -771,12 +813,12 @@
 							if($attribute_info['type'] == 'checkboxgroup') {
 								$currentlySetGroupValues = split(',', $Current_user_values[$email_key]['attributes'][$attribute_name]);
 								foreach ($currentlySetGroupValues as $key => $group_attribute_value) {
-									$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s" checked>%s</input><br>', $email_key, $attribute_name, $group_attribute_value, $group_attribute_value);
+									$HTML_attribute_value_input = sprintf('<input type="checkbox" class="Current_Modify_Checkbox_Value_%s" name="Modify_Entry_List[%s][%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $group_attribute_value, $group_attribute_value, $group_attribute_value);
 								}
 								$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 							}
 							else{
-								$HTML_attribute_value_input = sprintf('<input type="radio" name="Modify_Entry_List[%s][%s]" value="%s" checked>%s</input><br>', $email_key, $attribute_name, $Current_user_values[$email_key]['attributes'][$attribute_name], $Current_user_values[$email_key]['attributes'][$attribute_name]);
+								$HTML_attribute_value_input = sprintf('<input type="radio" class="Current_Modify_Attribute_Value_%s" name="Modify_Entry_List[%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $Current_user_values[$email_key]['attributes'][$attribute_name], $Current_user_values[$email_key]['attributes'][$attribute_name]);
 								$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 							}
 							
@@ -808,10 +850,10 @@
 							foreach ($Current_Modify_Entry_Block[$email_key][$attribute_name] as $key => $group_attribute_value) {
 								//these are the current set values, should make green background or w/e
 								if(in_array($group_attribute_value, $selectedGroupValues)) {
-									$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s" checked>%s</input><br>', $email_key, $attribute_name, $group_attribute_value, $group_attribute_value);
+									$HTML_attribute_value_input = sprintf('<input type="checkbox" class="Modify_Entry_Checkbox_Value_Attribute_%s" name="Modify_Entry_List[%s][%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $group_attribute_value, $group_attribute_value, $group_attribute_value);
 								}
 								else {
-									$HTML_attribute_value_input = sprintf('<input type="checkbox" name="Modify_Entry_List[%s][%s][]" value="%s">%s</input><br>', $email_key, $attribute_name, $group_attribute_value, $group_attribute_value);
+									$HTML_attribute_value_input = sprintf('<input type="checkbox" class="Modify_Entry_Checkbox_Value_Attribute_%s" name="Modify_Entry_List[%s][%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $group_attribute_value, $group_attribute_value, $group_attribute_value);
 								}
 								$HTML_table_row = $HTML_table_row.$HTML_attribute_value_input;
 							}
@@ -935,243 +977,243 @@
 
 
 
-//all below need adjustment
+// //all below need adjustment
 
-		function Set_Display_New_Entires($display_amount) {
+// 		function Set_Display_New_Entires($display_amount) {
 
-			//display amount either 10, 100, 1000
+// 			//display amount either 10, 100, 1000
 
-			$total_amount = count($New_Entry_List)
+// 			$total_amount = count($New_Entry_List)
 
-			$number_of_blocks = $total_amount/$display_amount + (($total_amount % $display_amount)? 1:0);
+// 			$number_of_blocks = $total_amount/$display_amount + (($total_amount % $display_amount)? 1:0);
 
-			$current_block_number = 0;
+// 			$current_block_number = 0;
 
-			$current_block = array_slice($New_Entry_List, $current_block_number*$display_amount, $display_amount);
+// 			$current_block = array_slice($New_Entry_List, $current_block_number*$display_amount, $display_amount);
 
-			$HTML_Display_Text = sprintf('<form id="new_entry_submit_form_block_%s" name="" action="%s" method="post">', $current_block_number, 'self');
-
-
-
-			$attribute_name_array = array();
-
-			foreach ($attribute_list as $attribute_name => $attribute_type) {
-				array_push($attribute_name_array, $attribute_name);
-			}
+// 			$HTML_Display_Text = sprintf('<form id="new_entry_submit_form_block_%s" name="" action="%s" method="post">', $current_block_number, 'self');
 
 
-			//still need to set for things like position and areas of practice
 
-			foreach ($current_block as $email_index => $attributes_and_values) {
-				$current_index=0;
+// 			$attribute_name_array = array();
 
-				$table_row = sprintf('<tr><td>%s</td>', $email_index);
-				$has_value = true;
-				while(true) {
-					if($current_index > 0) {
-						$table_row = sprintf('<tr><td></td>');
-					}
-					foreach ($attribute_name_array as $key => $attribute_name) {
-
-						if(isset($New_Entry_List[$email_index][$attribute_name][$current_index])){
-
-							$table_row = $table_row.sprintf('<td><input type="radio" name="New_Entry_Table[%s][%s]" value="%s"></td>', $email_index, $attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
-							$has_value = true;
-						}
-						else{
-							$table_row = $table_row.sprintf('<td></td>');
-						}
-
-					}
-
-					if($has_value == true) {
-						if($current_index == 0){
-							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="New_Entry_Table[%s][%s]" value="%s" checked></tr>',$email_index,'ALL_FIRST_ROW','ALL_FIRST_ROW_SET');
-						}
-						else{
-							$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
-						}
-						$has_value = false;
-						$current_index++;
-					}
-					else{
-						break;
-					}
-				}
-			}
-			$HTML_Display_Text = $HTML_Display_Text.'</table><input type="submit" value="Submit"></form>';
-			return $HTML_Display_Text;
-
-		}
-
-		function Change_Display($new_page_number) {
-
-		}
-
-		function Set_Display_Modify_Entries($display_amount) {
-			$total_amount = count($Modify_Entry_List)
-
-			$number_of_blocks = $total_amount/$display_amount + (($total_amount % $display_amount)? 1:0);
-
-			$current_block_number = 0;
-
-			$current_block = array_slice($Modify_Entry_List, $current_block_number*$display_amount, $display_amount);
-
-			$HTML_Display_Text = sprintf('<form id="modify_entry_submit_form_block_%s" name="" action="%s" method="post">', $current_block_number, 'self');
-
-			$HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="attribute_value_table">');
-
-			$attribute_name_array = array();
-
-			foreach ($attribute_list as $attribute_name => $attribute_type) {
-				array_push($attribute_name_array, $attribute_name);
-			}
+// 			foreach ($attribute_list as $attribute_name => $attribute_type) {
+// 				array_push($attribute_name_array, $attribute_name);
+// 			}
 
 
-			//still need to set for things like position and areas of practice
+// 			//still need to set for things like position and areas of practice
 
-			foreach ($current_block as $email_index => $attributes_and_values) {
-				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email_index);
-				$user_result = Sql_Query($entry_query);
-				$table_row = sprintf('<tr><td>%s</td>', $email_index);
+// 			foreach ($current_block as $email_index => $attributes_and_values) {
+// 				$current_index=0;
 
-				foreach ($attribute_name_array as $key => $attribute_name) {
+// 				$table_row = sprintf('<tr><td>%s</td>', $email_index);
+// 				$has_value = true;
+// 				while(true) {
+// 					if($current_index > 0) {
+// 						$table_row = sprintf('<tr><td></td>');
+// 					}
+// 					foreach ($attribute_name_array as $key => $attribute_name) {
 
-					$attribute_query =  sprintf('select value from %s where primary key = "%s"', $GLOBALS['tables']['user_attribute'], $user_result['id'].$attribute_list[$attribute_name]['id']);
-					$current_attribute_value = Sql_Query($attribute_query);
-					if($current_attribute_value) {
-						$table_row = $table_row.sprintf('<tr><td>%s</td>', $current_attribute_value);
-					}
-					else{
-						$table_row = $table_row.'<td></td>';
-					}
-				}
-				$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
+// 						if(isset($New_Entry_List[$email_index][$attribute_name][$current_index])){
 
-				$has_value = false;
-				$current_index = 0;
-				while(true) {
-					$table_row = '<tr><td></td>';
+// 							$table_row = $table_row.sprintf('<td><input type="radio" name="New_Entry_Table[%s][%s]" value="%s"></td>', $email_index, $attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
+// 							$has_value = true;
+// 						}
+// 						else{
+// 							$table_row = $table_row.sprintf('<td></td>');
+// 						}
 
-					foreach ($attribute_name_array as $key => $attribute_name) {
+// 					}
 
-						if(isset($Modify_Entry_List[$email_index][$attribute_name][$current_index])) {
-							$table_row = $table_row.sprintf('<td><input type="radio" name="Modify_Entry_Table[%s][%s]" value="%s"></td>', $email_index, $attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
-							$has_value = true;
-						}
-						else{
-							$table_row = $table_row.'<td></td>'
-						}
-					}
-					if($has_value == true) {
-						if($current_index == 0){
+// 					if($has_value == true) {
+// 						if($current_index == 0){
+// 							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="New_Entry_Table[%s][%s]" value="%s" checked></tr>',$email_index,'ALL_FIRST_ROW','ALL_FIRST_ROW_SET');
+// 						}
+// 						else{
+// 							$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
+// 						}
+// 						$has_value = false;
+// 						$current_index++;
+// 					}
+// 					else{
+// 						break;
+// 					}
+// 				}
+// 			}
+// 			$HTML_Display_Text = $HTML_Display_Text.'</table><input type="submit" value="Submit"></form>';
+// 			return $HTML_Display_Text;
 
-									//MUST HAVE CLICKING THIS RADIO BUTTON TO SET EACH OTHER RADIO BUTTON
-							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="Modify_Entry_Table[%s][%s]" value="%s" checked></tr>',$email_index, "ALL_FIRST_ROW", "ALL_FIRST_ROW");
-						}
-						else{
-							$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
-						}
-						$has_value = false;
-						$current_index++;
-					}
-					else{
-						break;
-					}
+// 		}
 
-				}
+// 		function Change_Display($new_page_number) {
 
-			}
-			$HTML_Display_Text = $HTML_Display_Text.'</table><input type="submit" value="Submit"></form>';
-			return $HTML_Display_Text;
-		}
+// 		}
 
-		$Stored_New_entries;
-		$Stored_Modify_Entries;
+// 		function Set_Display_Modify_Entries($display_amount) {
+// 			$total_amount = count($Modify_Entry_List)
 
-		function Submit_New_Entries(){
-			//store all new entries
+// 			$number_of_blocks = $total_amount/$display_amount + (($total_amount % $display_amount)? 1:0);
 
-			foreach ($Stored_New_entries as $email => $attributes) {
-				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
-				$user_result = Sql_Query($entry_query);
-				if($user_result){
-					//skip, shouldnt have already found one
-				}
-				else{
-					$id_val = $GLOBALS['incremental_id']++;
-					$new_entry_query = sprintf('insert into %s (id,email) values("%s","%s")', $GLOBALS['tables']['user'], $id_val, $email);
-					Sql_Query($new_entry_query);
-///////////////////THERE IS PROBABLY NEW USER FUNCTIONS TO USE/////////////////////////////////////////
-					foreach ($attributes as $attribute_name => $attribute_info) {
-						if(!isset($attribute_list[$attribute_name])) {
-							//skip
-						}
-						else{
-							$new_entry_attribute_query = sprintf('insert into %s ()')
-						}
-					}
-				}
-			}
+// 			$current_block_number = 0;
+
+// 			$current_block = array_slice($Modify_Entry_List, $current_block_number*$display_amount, $display_amount);
+
+// 			$HTML_Display_Text = sprintf('<form id="modify_entry_submit_form_block_%s" name="" action="%s" method="post">', $current_block_number, 'self');
+
+// 			$HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="attribute_value_table">');
+
+// 			$attribute_name_array = array();
+
+// 			foreach ($attribute_list as $attribute_name => $attribute_type) {
+// 				array_push($attribute_name_array, $attribute_name);
+// 			}
+
+
+// 			//still need to set for things like position and areas of practice
+
+// 			foreach ($current_block as $email_index => $attributes_and_values) {
+// 				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email_index);
+// 				$user_result = Sql_Query($entry_query);
+// 				$table_row = sprintf('<tr><td>%s</td>', $email_index);
+
+// 				foreach ($attribute_name_array as $key => $attribute_name) {
+
+// 					$attribute_query =  sprintf('select value from %s where primary key = "%s"', $GLOBALS['tables']['user_attribute'], $user_result['id'].$attribute_list[$attribute_name]['id']);
+// 					$current_attribute_value = Sql_Query($attribute_query);
+// 					if($current_attribute_value) {
+// 						$table_row = $table_row.sprintf('<tr><td>%s</td>', $current_attribute_value);
+// 					}
+// 					else{
+// 						$table_row = $table_row.'<td></td>';
+// 					}
+// 				}
+// 				$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
+
+// 				$has_value = false;
+// 				$current_index = 0;
+// 				while(true) {
+// 					$table_row = '<tr><td></td>';
+
+// 					foreach ($attribute_name_array as $key => $attribute_name) {
+
+// 						if(isset($Modify_Entry_List[$email_index][$attribute_name][$current_index])) {
+// 							$table_row = $table_row.sprintf('<td><input type="radio" name="Modify_Entry_Table[%s][%s]" value="%s"></td>', $email_index, $attribute_name, $New_Entry_List[$email_index][$attribute_name][$current_index]);
+// 							$has_value = true;
+// 						}
+// 						else{
+// 							$table_row = $table_row.'<td></td>'
+// 						}
+// 					}
+// 					if($has_value == true) {
+// 						if($current_index == 0){
+
+// 									//MUST HAVE CLICKING THIS RADIO BUTTON TO SET EACH OTHER RADIO BUTTON
+// 							$HTML_Display_Text = $HTML_Display_Text.$table_row.sprintf('<input type="radio" name="Modify_Entry_Table[%s][%s]" value="%s" checked></tr>',$email_index, "ALL_FIRST_ROW", "ALL_FIRST_ROW");
+// 						}
+// 						else{
+// 							$HTML_Display_Text = $HTML_Display_Text.$table_row.'</tr>';
+// 						}
+// 						$has_value = false;
+// 						$current_index++;
+// 					}
+// 					else{
+// 						break;
+// 					}
+
+// 				}
+
+// 			}
+// 			$HTML_Display_Text = $HTML_Display_Text.'</table><input type="submit" value="Submit"></form>';
+// 			return $HTML_Display_Text;
+// 		}
+
+// 		$Stored_New_entries;
+// 		$Stored_Modify_Entries;
+
+// 		function Submit_New_Entries(){
+// 			//store all new entries
+
+// 			foreach ($Stored_New_entries as $email => $attributes) {
+// 				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
+// 				$user_result = Sql_Query($entry_query);
+// 				if($user_result){
+// 					//skip, shouldnt have already found one
+// 				}
+// 				else{
+// 					$id_val = $GLOBALS['incremental_id']++;
+// 					$new_entry_query = sprintf('insert into %s (id,email) values("%s","%s")', $GLOBALS['tables']['user'], $id_val, $email);
+// 					Sql_Query($new_entry_query);
+// ///////////////////THERE IS PROBABLY NEW USER FUNCTIONS TO USE/////////////////////////////////////////
+// 					foreach ($attributes as $attribute_name => $attribute_info) {
+// 						if(!isset($attribute_list[$attribute_name])) {
+// 							//skip
+// 						}
+// 						else{
+// 							$new_entry_attribute_query = sprintf('insert into %s ()')
+// 						}
+// 					}
+// 				}
+// 			}
 			
-		}
+// 		}
 
-		function Submit_Modify_Entries() {
+// 		function Submit_Modify_Entries() {
 
-			foreach ($Stored_Modify_Entries as $email => $attribute_values) {
-				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
-				$user_result = Sql_Query($entry_query);
-				if(isset($user_result['id'])) {
-					foreach ($attribute_values as $attribute_name => $attribute_value) {
-						$update_query = sprintf('update %s set value="%s" where primary key="%s"', $GLOBALS['tables']['user_attribute'], $attribute_value, $attribute_list[$attribute_name]['id'].$user_result['id']);
-						Sql_Query($update_query);
-					}
-				}
-			}
+// 			foreach ($Stored_Modify_Entries as $email => $attribute_values) {
+// 				$entry_query = sprintf('select * from %s where email = "%s"', $GLOBALS['tables']['user'], $email);
+// 				$user_result = Sql_Query($entry_query);
+// 				if(isset($user_result['id'])) {
+// 					foreach ($attribute_values as $attribute_name => $attribute_value) {
+// 						$update_query = sprintf('update %s set value="%s" where primary key="%s"', $GLOBALS['tables']['user_attribute'], $attribute_value, $attribute_list[$attribute_name]['id'].$user_result['id']);
+// 						Sql_Query($update_query);
+// 					}
+// 				}
+// 			}
 
-		}
+// 		}
 
-		/////////CHECKBOXES HAVE COLUMNS AS VALUE EITHER ON OR OFF for values
+// 		/////////CHECKBOXES HAVE COLUMNS AS VALUE EITHER ON OR OFF for values
 
 
-		if(isset($_POST[$id])){
-			if(isset($_POST['New_Entry_Table'])) {
+// 		if(isset($_POST[$id])){
+// 			if(isset($_POST['New_Entry_Table'])) {
 
-				foreach ($_POST['New_Entry_Table'] as $email => $attribute_value_set) {
+// 				foreach ($_POST['New_Entry_Table'] as $email => $attribute_value_set) {
 
-					$Stored_New_entries[$email] = array();
-					if(isset($attribute_value_set['ALL_FIRST_ROW']) {
-						foreach ($New_Entry_List[$email] as $attribute_name => $values_array) {
-						 	$Stored_New_entries[$email][$attribute_name] = $values_array[0];
-						}
-					}
-					else{
-						foreach ($attribute_value_set as $attribute_name => $attribute_value) {
-							$Stored_New_entries[$email][$attribute_name] = $attribute_value;
-						}
-					}
-				}
-			}
-			if(isset($_POST['Modify_Entry_Table'])) {
+// 					$Stored_New_entries[$email] = array();
+// 					if(isset($attribute_value_set['ALL_FIRST_ROW']) {
+// 						foreach ($New_Entry_List[$email] as $attribute_name => $values_array) {
+// 						 	$Stored_New_entries[$email][$attribute_name] = $values_array[0];
+// 						}
+// 					}
+// 					else{
+// 						foreach ($attribute_value_set as $attribute_name => $attribute_value) {
+// 							$Stored_New_entries[$email][$attribute_name] = $attribute_value;
+// 						}
+// 					}
+// 				}
+// 			}
+// 			if(isset($_POST['Modify_Entry_Table'])) {
 
-				foreach ($_POST['Modify_Entry_Table'] as $email => $attribute_value_set) {
+// 				foreach ($_POST['Modify_Entry_Table'] as $email => $attribute_value_set) {
 
-					$Stored_Modify_Entries[$email] = array();
-					if(isset($attribute_value_set['ALL_FIRST_ROW']) {
-						foreach ($New_Entry_List[$email] as $attribute_name => $values_array) {
-						 	$Stored_Modify_Entries[$email][$attribute_name] = $values_array[0];
-						}
-					}
-					else{
-						foreach ($attribute_value_set as $attribute_name => $attribute_value) {
-							$Stored_Modify_Entries[$email][$attribute_name] = $attribute_value;
-						}
-					}
-				}
-			}
-		}
+// 					$Stored_Modify_Entries[$email] = array();
+// 					if(isset($attribute_value_set['ALL_FIRST_ROW']) {
+// 						foreach ($New_Entry_List[$email] as $attribute_name => $values_array) {
+// 						 	$Stored_Modify_Entries[$email][$attribute_name] = $values_array[0];
+// 						}
+// 					}
+// 					else{
+// 						foreach ($attribute_value_set as $attribute_name => $attribute_value) {
+// 							$Stored_Modify_Entries[$email][$attribute_name] = $attribute_value;
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
 
-	}
+// 	}
 
 
 
