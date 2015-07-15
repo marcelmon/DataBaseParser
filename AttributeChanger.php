@@ -477,6 +477,8 @@
 				}
 				else{
 					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="New_Entry_Include_All_Safe_Values_%s" value="Include All Safe Values" onClick="checkAll_NewEntry_SafeValues(%s)></input></td>', $attribute_name, $attribute_name);
+					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="New_Entry_Include_All_Safe_Values_Or_Checked_%s" value="Include All Safe Values" onClick="checkAll_NewEntry_SafeValues(%s)></input></td>', $attribute_name, $attribute_name);
+
 					$HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="New_Entry_Remove_All_Safe_Values_%s" value="Remove All Safe Values" onClick="removeAll_NewEntry_SafeValues(%s)></input></td>', $attribute_name, $attribute_name);
 				}
 			}
@@ -500,114 +502,68 @@
 						$HTML_table_row = $HTML_table_row.'<td></td>';
 					}
 
-					else if(isset($Commited_New_Entires[$email_key] && isset($Commited_New_Entires[$email_key][$attribute_name]))) {
+					else foreach ($new_user_attributes_and_values[$attribute_name] as $key => $attribute_value) {
 
 						if($attribute_info['type'] == 'checkboxgroup') {
-							$selectedGroupValues = split(',', $Commited_New_Entires[$email_key][$attribute_name]);
-						}
-
-						//one of the possible new attribute values for this attribute is already checked
-
-						//these are all possible attribute values
-						//for single values, 
-						foreach ($new_user_attributes_and_values[$attribute_name] as $key => $attribute_value) {
-							//must display each of the possible attribute values in a single cell
-
-							$HTML_table_row= $HTML_table_row.'<td>';
-
-
-							switch($attribute_info['type']){
-
-								case "textarea"|"textline"|"checkbox"|"hidden"|"date": 
-
-									if($Commited_New_Entires[$email_key][$attribute_name] == $attribute_value) {
-										//if the attribute value is the already selected, mark as checked
-										if($key == 0) {
-											$HTML_attribute_value_input = sprintf('<input type="radio"  class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s" checked>%s</input>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
-
-										}
-										else{
-											$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s" checked>%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-										}
-										
-
-									}
-									else{
-										//else not yet selected so just create the input
-										if($key == 0) {
-											$HTML_attribute_value_input = sprintf('<input type="radio" class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s">%s</input>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
-
-										}
-										else{
-											$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s">%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-										}
-									}
-
-									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
-									break;
-								
-
-								case "checkboxgroup": 
-									
-									if(in_array($attribute_value, $selectedGroupValues)) {
-										//the current attribute value should already be checked
-
-										$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
-									}
-									else{
-										//not already checked
-										$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
-									}
-									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
-
-									break;
-								default:
-									break;
+							if(isset($Commited_New_Entires[$email_key]) && isset($Commited_New_Entires[$email_key][$attribute_name])) {
+								$selectedGroupValues = split(',', $Commited_New_Entires[$email_key][$attribute_name]);
 							}
-							
-							
 						}
-						//have cycled through each of possible new values for the attribute
-						$HTML_table_row= $HTML_table_row.'</td>';
+
+						$HTML_table_row= $HTML_table_row.'<td>';
 
 
-					}
-					else{
-						//this attribute has no chosen attribute values set for this email
-						foreach ($new_user_attributes_and_values[$attribute_name] as $key => $attribute_value) {
-							//must display each of the possible attribute values in a single cell
+						switch($attribute_info['type']){
 
-							$HTML_table_row= $HTML_table_row.'<td>';
+							case "textarea"|"textline"|"checkbox"|"hidden"|"date": 
 
+								if(isset($Commited_New_Entires[$email_key] && isset($Commited_New_Entires[$email_key][$attribute_name]) && $Commited_New_Entires[$email_key][$attribute_name] === $attribute_value)) {
 
-							switch($attribute_info['type']){
-
-								case "textarea"|"textline"|"checkbox"|"hidden"|"date": 
+									//if the attribute value is the already selected, mark as checked
 									if($key == 0) {
-										$HTML_attribute_value_input = sprintf('<input type="radio" class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
-									}
-									else {
-										$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $attribute_value, $attribute_value);
-									}
-									
-									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
-									break;
-								
+										$HTML_attribute_value_input = sprintf('<input type="radio"  class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s" checked>%s</input>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
 
-								case "checkboxgroup": 
+									}
+									else{
+										$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s" checked>%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+									}
 									
+								}
+
+								else{
+									//else not yet selected so just create the input
+									if($key == 0) {
+										$HTML_attribute_value_input = sprintf('<input type="radio" class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s">%s</input>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
+
+									}
+									else{
+										$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s">%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+									}
+								}
+
+								$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
+								break;
+							
+
+							case "checkboxgroup": 
+								if(isset($Commited_New_Entires[$email_key]) && isset($Commited_New_Entires[$email_key][$attribute_name]) && in_array($attribute_value, $selectedGroupValues)) {
+									//the current attribute value should already be checked
+									$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
+								}
+
+								else{
+									//not already checked
 									$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
+								}
+								$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
 
-									$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
-
-									break;
-							}
-							
-							
+								break;
+							default:
+								break;
 						}
-						//have cycled through each of possible new values for the attribute
-						$HTML_table_row = $HTML_table_row.'</td>';
 					}
+					//have cycled through each of possible new values for the attribute
+					$HTML_table_row= $HTML_table_row.'</td>';
 				}
 
 				$HTML_Display_Text = $HTML_Display_Text.$HTML_table_row.'</tr>';
@@ -1248,7 +1204,114 @@
 // 	}
 
 
+//THROWN OUT AND CLEANED UP
+	// else if(isset($Commited_New_Entires[$email_key] && isset($Commited_New_Entires[$email_key][$attribute_name]))) {
 
+						
+
+	// 					//one of the possible new attribute values for this attribute is already checked
+
+	// 					//these are all possible attribute values
+	// 					//for single values, 
+	// 					foreach ($new_user_attributes_and_values[$attribute_name] as $key => $attribute_value) {
+	// 						//must display each of the possible attribute values in a single cell
+
+	// 						$HTML_table_row= $HTML_table_row.'<td>';
+
+
+	// 						switch($attribute_info['type']){
+
+	// 							case "textarea"|"textline"|"checkbox"|"hidden"|"date": 
+
+	// 								if($Commited_New_Entires[$email_key][$attribute_name] == $attribute_value) {
+	// 									//if the attribute value is the already selected, mark as checked
+	// 									if($key == 0) {
+	// 										$HTML_attribute_value_input = sprintf('<input type="radio"  class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s" checked>%s</input>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
+
+	// 									}
+	// 									else{
+	// 										$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s" checked>%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+	// 									}
+										
+
+	// 								}
+	// 								else{
+	// 									//else not yet selected so just create the input
+	// 									if($key == 0) {
+	// 										$HTML_attribute_value_input = sprintf('<input type="radio" class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s">%s</input>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
+
+	// 									}
+	// 									else{
+	// 										$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s">%s</input>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+	// 									}
+	// 								}
+
+	// 								$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
+	// 								break;
+								
+
+	// 							case "checkboxgroup": 
+									
+	// 								if(in_array($attribute_value, $selectedGroupValues)) {
+	// 									//the current attribute value should already be checked
+
+	// 									$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s" checked>%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
+	// 								}
+	// 								else{
+	// 									//not already checked
+	// 									$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
+	// 								}
+	// 								$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
+
+	// 								break;
+	// 							default:
+	// 								break;
+	// 						}
+							
+							
+	// 					}
+	// 					//have cycled through each of possible new values for the attribute
+	// 					$HTML_table_row= $HTML_table_row.'</td>';
+
+
+	// 				}
+	// 				else{
+	// 					//this attribute has no chosen attribute values set for this email
+	// 					foreach ($new_user_attributes_and_values[$attribute_name] as $key => $attribute_value) {
+	// 						//must display each of the possible attribute values in a single cell
+
+	// 						$HTML_table_row= $HTML_table_row.'<td>';
+
+
+	// 						switch($attribute_info['type']){
+
+	// 							case "textarea"|"textline"|"checkbox"|"hidden"|"date": 
+	// 								if($key == 0) {
+	// 									$HTML_attribute_value_input = sprintf('<input type="radio" class="New_Entry_Safe_Value_Attribute_%s" name="New_Entry_List[%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value);
+	// 								}
+	// 								else {
+	// 									$HTML_attribute_value_input = sprintf('<input type="radio" name="New_Entry_List[%s][%s]" value="%s">%s</input><br>', $email_key, $attribute_name, $attribute_value, $attribute_value);
+	// 								}
+									
+	// 								$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
+	// 								break;
+								
+
+	// 							case "checkboxgroup": 
+									
+	// 								$HTML_attribute_value_input = sprintf('<input type="checkbox" class="New_Entry_Checkbox_Value_Attribute_%s" name="New_Entry_List[%s][%s][%s]" value="%s">%s</input><br>', $attribute_name, $email_key, $attribute_name, $attribute_value, $attribute_value, $attribute_value);
+
+	// 								$HTML_table_row= $HTML_table_row.$HTML_attribute_value_input.'<br>';
+
+	// 								break;
+	// 						}
+							
+							
+	// 					}
+	// 					//have cycled through each of possible new values for the attribute
+	// 					$HTML_table_row = $HTML_table_row.'</td>';
+	// 				}
+	// 			}
 	
 
 ?>
