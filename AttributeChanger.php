@@ -163,179 +163,134 @@
 			}
 
 			if($user_sql_result){
-
-				$Current_Users_Values[$email] = array();
-				$user_result = Sql_fetch_array($user_sql_result);
-				foreach ($attribute_list as $attribute_name => $attribute_array) {
-					
-					$Current_User_Attribute_Values_Query = sprintf("select value from %s where attributeid = %d and userid = %d", $GLOBALS['tables']['user_attribute'], $attribute_array['id'], $user_result['id']);
-					$current_attribute_return = Sql_Fetch_Row($current_attribute_return);
-					if($current_attribute_return){
-
-						if($attribute_array['type'] == 'checkboxgroup') {
-							$exploded_current_values_ids = explode(',', $current_attribute_return);
-
-							foreach ($exploded_current_values_ids as $key => $attribute_value_id) {
-								$attribute_value_from_id_query = sprintf("select name from %s where id = %d", $attribute_array['tablename'], $attribute_value_id);
-							}
-							$Current_Users_Values[$email][$attribute_name] = $exploded_current_values;
-						}
-						else if($attribute_array['type'] == 'checkbox'|'select'|'radio') {
-							$attribute_value_from_id_query = sprintf("select name from %s where id = %d", $attribute_array['tablename'], $current_attribute_return);
-							$Current_Users_Values[$email][$attribute_name] = $exploded_current_values;
-						}
-						else if($attribute_array['type'] == 'textarea'|'textline') {
-							$Current_Users_Values[$email][$attribute_name] = $current_attribute_return;
-						}
-						else if($attribute_array['type'] == 'Date') {
-							$Current_Users_Values[$email][$attribute_name] = $current_attribute_return;
-						}
-
-					}
-				}
+				Get_Current_User_Attribute_Values($Current_Users_Values, $email, $attribute_list);
 			}
-			
 
-
-			
-			
 			
 
 			//if there are attributes, must check each value to look for update
 			foreach ($entry as $attribute => $new_attribute_value) {
 
-				if(isset($attribute_list[$attribute])) {
-					if(isset($user_result['id'])) {
-						$attribute_query = sprintf("select value from %s where attributeid = %s and userid = %s", $GLOBALS['tables']['user_attribute'], $attribute_list[$attribute]['id'], $user_result['id']);
-						$current_attribute_return = Sql_Fetch_Row_Query($attribute_query);
-						if(!$current_attribute_return) {
-							unset($current_user_attribute);
-						}
-						else{
-							$current_user_attribute = $current_attribute_return[0];
-						}
-					}
+				//these are single choice values
+				if($attribute_list[$attribute]['type'] == "radio"|"select"|'checkbox') {
 
+					//must check if the possible new value is an allowed value
+					if(in_array($new_attribute_value, $attribute_list[$attribute]['allowed_values'])) {
 
-					//these are single choice values
-					if($attribute_list[$attribute]['type'] == "radio"|"select"|'checkbox') {
-
-						//must check if the possible new value is an allowed value
-						if(in_array($new_attribute_value, $attribute_list[$attribute]['allowed_values'])) {
-
-							//this is if the returned user has an id, will always have an id if exists in the database
-							if(isset($Current_Users_Values[$email][$attribute])) {
-
-								//the return query for the user,attrubute does not match the new possible attribute value
-								if($Current_Users_Values[$email][$attribute] != $new_attribute_value) {
-									Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
-								}
-								else{
-									//already equals the currenttly set attribute value
-								}
-							}
-							else{
-								//no user info, add info to list
-								Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $New_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
-							}
-						}
-						else{
-							//not an allowed value so skip
-						}
-					}
-
-					//these are multiple choice types, the new attribute value must match
-					else if($attribute_list[$attribute]['type'] == 'checkboxgroup') {
-
-						$exploded_attribute_values_array = explode(',', $new_attribute_value);
-
-						foreach ($exploded_attribute_values_array as $key => $exploded_attribute_value) {
-
-							if(in_array($exploded_attribute_value, $attribute_list[$attribute]['allowed_values'])) {
-
-								if(isset($Current_Users_Values[$email][$attribute]) {
-									//user definately exists, need to check if the current value is already one selected
-									if(!in_array($exploded_attribute_value, $Current_Users_Values[$email][$attribute])) {
-										//if not in the array, add it to the change list
-										Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_Entry_List); 
-									}
-								}
-								else{
-									if(!isset($Current_Users_Values[$email][$attribute])) {
-										Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $New_Entry_List); 
-
-									}
-									//no current attributes, can definately add to list, user exists
-									Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_Entry_List);								
-								}
-							}
-						}
-					}
-
-					else if ($attribute_list[$attribute]['type'] == "date") {
-
-						$exploded_date =explode('/', $new_attribute_value);
-						if(count($exploded_date) != 3) {
-							//cannot use
-						}
-						else{
-							$day = intval($exploded_date[0]);
-							$month = intval($exploded_date[1]);
-							$year = intval($exploded_date[2]);
-							if(filter_var($day , FILTER_VALIDATE_INT,  array('options' => array(  'min_range' => 1, 'max_range' => 31) )) == false){
-							}
-							else if(filter_var($month , FILTER_VALIDATE_INT,  array('options' => array(  'min_range' => 1, 'max_range' => 12) )) == false) {
-							}
-
-							##Consider adding date validate to this date as max
-							else if(filter_var($year , FILTER_VALIDATE_INT,  array('options' => array(  'min_range' => 1900, 'max_range' => 3000) )) == false) {
-							}
-							else{
-								if($day < 10){
-									$day_string = '0'.strval($day);
-								}
-								else{
-									$day_string = strval($day);
-								}
-
-								if($month < 10){
-									$month_string = '0'.strval($month);
-								}
-								else{
-									$month_string = strval($month);
-								}
-
-								$year_string = strval($year);
-
-								$new_date_value = $day_string.'/'.$month_string.'/'.$year_string;
-							}
-							if(isset($Current_Users_Values[$email][$attribute])) {
-								if($Current_Users_Values[$email][$attribute] != $new_date_value) {
-									Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_date_value, $attribute, $Modify_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
-								}
-							}
-						}
-
-					}
-
-					else if ($attribute_list[$attribute]['type'] == "textarea"|"textline") {
 						//this is if the returned user has an id, will always have an id if exists in the database
 						if(isset($Current_Users_Values[$email][$attribute])) {
 
-							//the return query for the user,attrubute does not match the new possible attribute value, so add to the list
-							if($Current_Users_Values[$email][$attribute] != $new_attribute_value) {
-
+							//the return query for the user,attrubute does not match the new possible attribute value
+							
+							if(isset($Current_Users_Values[$email][$attribute]) && $Current_Users_Values[$email][$attribute] != $new_attribute_value) {
+								
 								Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
-
 							}
 							else{
 								//already equals the currenttly set attribute value
 							}
 						}
 						else{
-							// there is no user set, so all values are good for this type (make sure proper string format though)
-							Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $New_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
+							//no user info, add info to list
+							Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $New_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
 						}
+					}
+					else{
+						//not an allowed value so skip
+					}
+				}
+
+				//these are multiple choice types, the new attribute value must match
+				else if($attribute_list[$attribute]['type'] == 'checkboxgroup') {
+
+					$exploded_attribute_values_array = explode(',', $new_attribute_value);
+
+					foreach ($exploded_attribute_values_array as $key => $exploded_attribute_value) {
+
+						if(in_array($exploded_attribute_value, $attribute_list[$attribute]['allowed_values'])) {
+
+							if(isset($Current_Users_Values[$email][$attribute]) {
+								//user definately exists, need to check if the current value is already one selected
+								if(!in_array($exploded_attribute_value, $Current_Users_Values[$email][$attribute])) {
+									//if not in the array, add it to the change list
+									Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_Entry_List); 
+								}
+							}
+							else{
+								if(!isset($Current_Users_Values[$email][$attribute])) {
+									Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $New_Entry_List); 
+
+								}
+								//no current attributes, can definately add to list, user exists
+								Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_Entry_List);								
+							}
+						}
+					}
+				}
+
+				else if ($attribute_list[$attribute]['type'] == "date") {
+
+					$exploded_date =explode('/', $new_attribute_value);
+					if(count($exploded_date) != 3) {
+						//cannot use
+					}
+					else{
+						$day = intval($exploded_date[0]);
+						$month = intval($exploded_date[1]);
+						$year = intval($exploded_date[2]);
+						if(filter_var($day , FILTER_VALIDATE_INT,  array('options' => array(  'min_range' => 1, 'max_range' => 31) )) == false){
+						}
+						else if(filter_var($month , FILTER_VALIDATE_INT,  array('options' => array(  'min_range' => 1, 'max_range' => 12) )) == false) {
+						}
+
+						##Consider adding date validate to this date as max
+						else if(filter_var($year , FILTER_VALIDATE_INT,  array('options' => array(  'min_range' => 1900, 'max_range' => 3000) )) == false) {
+						}
+						else{
+							if($day < 10){
+								$day_string = '0'.strval($day);
+							}
+							else{
+								$day_string = strval($day);
+							}
+
+							if($month < 10){
+								$month_string = '0'.strval($month);
+							}
+							else{
+								$month_string = strval($month);
+							}
+
+							$year_string = strval($year);
+
+							$new_date_value = $day_string.'/'.$month_string.'/'.$year_string;
+						}
+						if(isset($Current_Users_Values[$email][$attribute])) {
+							if($Current_Users_Values[$email][$attribute] != $new_date_value) {
+								Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_date_value, $attribute, $Modify_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
+							}
+						}
+					}
+
+				}
+
+				else if ($attribute_list[$attribute]['type'] == "textarea"|"textline") {
+					//this is if the returned user has an id, will always have an id if exists in the database
+					if(isset($Current_Users_Values[$email][$attribute])) {
+
+						//the return query for the user,attrubute does not match the new possible attribute value, so add to the list
+						if($Current_Users_Values[$email][$attribute] != $new_attribute_value) {
+
+							Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
+
+						}
+						else{
+							//already equals the currenttly set attribute value
+						}
+					}
+					else{
+						// there is no user set, so all values are good for this type (make sure proper string format though)
+						Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $New_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
 					}
 				}
 			}
@@ -695,6 +650,54 @@
 			$HTML_Display_Text = $HTML_Display_Text.'</tr>';
 
 			foreach ($Current_Modify_Entry_Block as $email_key => $modify_user_attributes_and_values) {
+				//THIS SHOULD NEVER HAPPEN!!!!!!!
+				if(!isset($Current_user_values[$email_key])) {
+
+					$user_query = sprintf('select id from %s where email = %s', $GLOBALS['tables']['user'], $email_key);
+
+					$user_result_return = Sql_Query($user_query);
+					$user_result = Sql_fetch_array($user_result_return);
+					if(!$user_query) {
+						//should add the entry to new_entry_block
+					}
+					else{
+						$Current_user_values[$email_key] = array();
+						$Current_user_values[$email_key]['user_id'] = $user_result['id'];
+						$Current_user_values[$email_key]['attributes'] = array();
+
+						foreach ($attribute_list as $attribute_name => $attribute_info) {
+
+							$current_attribute_value_query = sprintf('select value from %s where primary key = %s', $GLOBALS['tables']['user_attribute'], $user_result['id'].$attribute_info['id']);
+							$current_attribute_value = Sql_Query($current_attribute_value_query);
+							if(isset($current_attribute_value)) {
+								if($current_attribute_value != '') {
+									$Current_user_values[$email_key]['attributes'][$attribute_name] = $current_attribute_value;
+								}
+							}
+						}
+					}
+				}
+				
+				if(isset($Commited_Modify_Entries[$email_key])) {
+					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="Modify_Entry_Email" name="Modify_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input></td>',$email_key, $email_key);
+				}
+				else{
+					$HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="Modify_Entry_Email" name="Modify_Entry_List[%s][\'include\']" value="include">Include This Email</input></td>',$email_key, $email_key);
+				}
+
+				foreach ($attribute_list as $attribute_name => $attribute_info) {
+					$HTML_table_row = $HTML_table_row.'<td>';
+					if(isset($Current_user_values[$email_key]['attributes'][$attribute_name])) {
+						if($attribute_list[$attribute_name]['type'] === 'checkboxgroup') {
+
+							$Current_User_Checkboxgroup_Valus = split(',', string)
+						}
+
+
+			}
+
+
+			foreach ($Current_Modify_Entry_Block as $email_key => $modify_user_attributes_and_values) {
 
 				//THIS SHOULD NEVER HAPPEN!!!!!!!
 				if(!isset($Current_user_values[$email_key])) {
@@ -711,6 +714,31 @@
 						$Current_user_values[$email_key]['attributes'] = array();
 
 						foreach ($attribute_list as $attribute_name => $attribute_info) {
+							
+							$Current_User_Attribute_Values_Query = sprintf("select value from %s where attributeid = %d and userid = %d", $GLOBALS['tables']['user_attribute'], $attribute_array['id'], $user_result['id']);
+							$current_attribute_return = Sql_Fetch_Query($current_attribute_return);
+							if($current_attribute_return){
+
+								if($attribute_array['type'] == 'checkboxgroup') {
+									$exploded_current_values_ids = explode(',', $current_attribute_return);
+
+									foreach ($exploded_current_values_ids as $key => $attribute_value_id) {
+										$attribute_value_from_id_query = sprintf("select name from %s where id = %d", $attribute_array['tablename'], $attribute_value_id);
+									}
+									$Current_Users_Values[$email][$attribute_name] = $exploded_current_values;
+								}
+								else if($attribute_array['type'] == 'checkbox'|'select'|'radio') {
+									$attribute_value_from_id_query = sprintf("select name from %s where id = %d", $attribute_array['tablename'], $current_attribute_return);
+									$Current_Users_Values[$email][$attribute_name] = $exploded_current_values;
+								}
+								else if($attribute_array['type'] == 'textarea'|'textline') {
+									$Current_Users_Values[$email][$attribute_name] = $current_attribute_return;
+								}
+								else if($attribute_array['type'] == 'Date') {
+									$Current_Users_Values[$email][$attribute_name] = $current_attribute_return;
+								}
+
+							}
 
 							$current_attribute_value_query = sprintf('select value from %s where primary key = %s', $GLOBALS['tables']['user_attribute'], $user_result['id'].$attribute_info['id']);
 							$current_attribute_value = Sql_Query($current_attribute_value_query);
@@ -958,7 +986,51 @@
 		}
 
 
+		function Get_Current_User_Attribute_Values($Current_Value_List, $email_key, $set_attribute_list) {
 
+			$current_user_query = sprintf('select id from %s where email = "%s"', $GLOBALS['tables']['user'], $email_key);
+			$current_user_sql_result = Sql_Fetch_Row_Query($current_user_query);
+			if(!isset($current_user_sql_result[0])) {
+				return false;
+			}
+			if(!isset($Current_Value_List[$email_key])) {
+				$Current_Value_List[$email_key] = array();
+			}
+
+			foreach ($set_attribute_list as $attribute_name => $attribute_array) {
+				
+				$Current_User_Attribute_Values_Query = sprintf("select value from %s where attributeid = %d and userid = %d", $GLOBALS['tables']['user_attribute'], $attribute_array['id'], $user_result['id']);
+				$current_attribute_return = Sql_Fetch_Row_Query($current_attribute_return);
+				if($current_attribute_return){
+
+					if($attribute_array['type'] == 'checkboxgroup') {
+						$exploded_current_values_ids = explode(',', $current_attribute_return);
+
+						$Current_Value_List[$email_key][$attribute_name] = array();
+
+						foreach ($exploded_current_values_ids as $key => $attribute_value_id) {
+							$attribute_value_from_id_query = sprintf("select name from %s where id = %d", $attribute_array['tablename'], $attribute_value_id);
+							$attribute_value_return = Sql_Fetch_Row_Query($attribute_value_from_id_query);
+							array_push($Current_Value_List[$email_key][$attribute_name], $attribute_value_return);
+						
+						}
+					}
+					else if($attribute_array['type'] == 'checkbox'|'select'|'radio') {
+						$attribute_value_from_id_query = sprintf("select name from %s where id = %d", $attribute_array['tablename'], $current_attribute_return);
+
+						$attribute_value_return = Sql_Fetch_Row_Query($attribute_value_from_id_query);
+						$Current_Value_List[$email_key][$attribute_name] = $attribute_value_return;
+					}
+					else if($attribute_array['type'] == 'textarea'|'textline') {
+						$Current_Value_List[$email_key][$attribute_name] = $current_attribute_return;
+					}
+					else if($attribute_array['type'] == 'Date') {
+						$Current_Value_List[$email_key][$attribute_name] = $current_attribute_return;
+					}
+				}
+			}
+			return true;
+		}
 
 
 
