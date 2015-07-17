@@ -167,7 +167,10 @@
 			}
 
 			
+//////////////////////////////messy in HEREEEEE 
 
+
+			
 			//if there are attributes, must check each value to look for update
 			foreach ($entry as $attribute => $new_attribute_value) {
 
@@ -183,7 +186,7 @@
 							//the return query for the user,attrubute does not match the new possible attribute value
 							
 							if(isset($Current_Users_Values[$email][$attribute]) && $Current_Users_Values[$email][$attribute] != $new_attribute_value) {
-								
+
 								Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Modify_Entry_List, $Duplicate_Attribute_Values_list, $Duplicate_Attributes);
 							}
 							else{
