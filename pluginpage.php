@@ -132,18 +132,98 @@ if(isset($_POST['submit']['File_Column_Match_Submit'])) {
     }
     else{
         asort($_POST['attribute_to_match'], SORT_NUMERIC);
+        //so that the columns are matched, easier to read the file from comma to comma
+        $fp = fopen($FILE_LOCATION, 'r');
+        $current_char;
+        while(($current_char = fread($fp, 1)) != '\n') {
+            //skip the first bit of columns   
+        }
+        $current_value;
+        $col_difference;
+
+        $file_attribute_value_array = array();
 
 
 
-            ///START CaLLING DAS OTHER STUFFS
-            /////////////////////////////////////////////////////
-            //USE DISSSS
+        $current_block = '';
+        $lines = array();
+
+        $is_first = 1;
+
+        $previous_last_line = '';
+
+
+        while(!feof($fp)) {
+            //read 10kb at a time
+            $current_block = fread($fp, 10260);
+            $lines = explode('\n', $current_block);
+
+            //if this is not the first pass, merge the last previous line
+            if($is_first == 0) {
+                $lines[0] = $previous_last_line.$lines[0];
+            }
+            $previous_last_line = $lines[$lines.length -1 ];
+            //omit first line on first pass
+            //and last line, they will be merged
+            for ($i= $is_first; $i < $lines.length - 1 ; $i++) { 
+
+                $previous_column = 0;
+                $file_attribute_value_array = explode(',', $lines[$i]);
+                
+
+                if($file_attribute_value_array.length > 0 && $file_attribute_value_array[0] != '') {
+
+                    $new_attribute_value_array = array();
+
+                    foreach ($_POST['attribute_to_match'] as $col_number => $attribute_name) {
+                        if(isset($file_attribute_value_array[$col_number]) && $file_attribute_value_array[$col_number] != '') {
+                            $new_attribute_value_array[$attribute_name] = $file_attribute_value_array[$col_number];
+                        }
+                    }
+                    if(isset($new_attribute_value_array['email'])) {
+                        Updated_Test_Entry($new_attribute_value_array);
+                    } 
+                }
+ 
+            }
+        }
+        if($previous_last_line != '') {
+            $previous_column = 0;
+            $file_attribute_value_array = explode(',', $previous_last_line);
             
-            Updated_Test_Entry($entry) 
-            //entry is [email]=>array (attribute, value)
-        
-    }
+
+            if($file_attribute_value_array.length > 0 && $file_attribute_value_array[0] != '') {
+
+                $new_attribute_value_array = array();
+
+                foreach ($_POST['attribute_to_match'] as $col_number => $attribute_name) {
+                    if(isset($file_attribute_value_array[$col_number]) && $file_attribute_value_array[$col_number] != '') {
+                        $new_attribute_value_array[$attribute_name] = $file_attribute_value_array[$col_number];
+                    }
+                }
+                if(isset($new_attribute_value_array['email'])) {
+                    Updated_Test_Entry($new_attribute_value_array);
+                } 
+            }
+        }
+        $display_html ='<html><body>';
+        $new_entry_table_html = '';
+        if(!Initialize_New_Entries_Display()==null) {
+            $display_html = $display_html.Get_New_Entry_Table_Block().'</body></html>';
+            print($display_html);
+        }
+        else{
+            if(!Initialize_Modify_Entries_Display()==null) {
+                $display_html = $display_html.Get_Modify_Entry_Table_Block().'</body></html>';
+                print($display_html);
+            }
+            else{
+                $display_html = $display_html.'There is nothing new or to modify</body></html>'
+            }
+        }
+    }      
 }
+
 $FILE_LOCATION;
 function Get_Attribute_File_Column_Match($new_file_loc) {
     if(!file_exists($new_file_loc)) {

@@ -257,5 +257,32 @@
         $HTML_TO_DISPLAY = Get_Modify_Entry_Table_Block();
         
     }
- 
+
+    function Process_All_New_And_Modify() {
+        if($Commited_New_Entires.length > 0) {
+            foreach ($Commited_New_Entires as $email_key => $attributes_and_values) {
+                $user_id = addNewUser($email_key);
+                foreach ($attributes_and_values as $attribute_name => $attribute_value) {
+                    saveUserAttribute($user_id, $attribute_list[$attribute_name]['id'], $attribute_value);
+                }
+                
+            }
+        }
+        if($Commited_Modify_Entries.length > 0) {
+            foreach ($Commited_New_Entires as $email_key => $attributes_and_values) {
+
+                $user_id_query = sprintf("select id from %s where email = %s", $GLOBALS['tables']['user'], $email_key);
+                $user_id = Sql_Fetch_Row_Query($user_id_query);
+                if(!$user_id) {
+
+                }
+                else{
+                    foreach ($attributes_and_values as $attribute_name => $attribute_value) {
+                        saveUserAttribute($user_id, $attribute_list[$attribute_name]['id'], $attribute_value);
+                    }
+                } 
+            }
+        }
+        $return_html = '<html><body>Complete</body></html>';
+    }
 ?>

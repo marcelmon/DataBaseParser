@@ -103,7 +103,7 @@
                 return false;
             }
             $email = $entry['email'];
-            array_shift($entry);
+            unset($entry['email']);
             if(!filter_var($email, FILTER_VALIDATE_EMAIL) ){
                 return false;
             }
@@ -295,6 +295,9 @@
         $Current_New_Entry_Block;
  
         function Initialize_New_Entries_Display() {
+            if($New_Entry_List.length == 0) {
+                return null;
+            }
             $Current_New_Entries_Display_Amount = 100;
             $New_Entries_Total_Amount = count($New_Entry_List);
             $New_Entires_Number_Of_Blocks = $New_Entries_Total_Amount/$Current_New_Entries_Display_Amount + (($New_Entries_Total_Amount % $Current_New_Entries_Display_Amount)? 1:0);
@@ -341,6 +344,7 @@
 
 
         function Get_New_Entry_Table_Block() {
+            
             $Current_New_Entry_Block = array_slice($New_Entry_List, $Current_New_Entry_Block_Number*$Current_New_Entries_Display_Amount, $Current_New_Entries_Display_Amount);
             $HTML_Display_Text = sprintf('<form name="New_Entry_Submit_Form_Block__%d" action="%s" method="post">', $Current_New_Entry_Block_Number, 'self');
             $HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="New_User_Attribute_Select_Table_Block__%d">', $Current_New_Entry_Block_Number);
@@ -461,6 +465,9 @@
         $Commited_Modify_Entries;
  
         function Initialize_Modify_Entries_Display() {
+            if($Modify_Entry_List.length == 0) {
+                return null;
+            }
             $Current_Modify_Entries_Display_Amount = 100;
             $Modify_Enties_Total_Amount = count($Modify_Entry_List);
             $Modify_Entires_Number_Of_Blocks = $Modify_Enties_Total_Amount/$Current_Modify_Entries_Display_Amount + (($Current_Modify_Entries_Display_Amount % $Modify_Enties_Total_Amount)? 1:0);
