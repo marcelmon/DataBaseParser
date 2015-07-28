@@ -131,16 +131,20 @@ if(isset($_POST['submit']['File_Column_Match_Submit'])) {
         //shouldnt happen .... else user needs to be WARNEDDDDD
     }
     else{
-        foreach ($_POST['attribute_to_match'] as $attribute => $column_key_to_match) {
+        asort($_POST['attribute_to_match'], SORT_NUMERIC);
+
+
+
             ///START CaLLING DAS OTHER STUFFS
             /////////////////////////////////////////////////////
             //USE DISSSS
-            Updated_Test_Entry($entry) {
+            
+            Updated_Test_Entry($entry) 
             //entry is [email]=>array (attribute, value)
-        }
+        
     }
 }
-
+$FILE_LOCATION;
 function Get_Attribute_File_Column_Match($new_file_loc) {
     if(!file_exists($new_file_loc)) {
         return '';
