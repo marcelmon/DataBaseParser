@@ -310,7 +310,7 @@
             if($New_Amount != (10|100|1000|10000|'all')) {
                 return false;
             }
-            if($Current_New_Entries_Display_Amount === 'all') {
+            if($New_Amount === 'all') {
                 $New_Entires_Number_Of_Blocks =1;
                 $Current_New_Entries_Display_Amount = $New_Entries_Total_Amount;
                 $Current_New_Entry_Block_Number = 0;
@@ -496,8 +496,14 @@
             }
         }
         function Modify_Entry_Change_Display_Amount($New_Amount) {
-            if($New_Amount != (10|100|1000|10000)) {
+            if($New_Amount != (10|100|1000|10000|"all")) {
                 return false;
+            }
+            if($New_Amount === 'all') {
+                $New_Entires_Number_Of_Blocks =1;
+                $Current_Modify_Entries_Display_Amount = $Modify_Enties_Total_Amount;
+                $Current_Modify_Entry_Block_Number = 0;
+                return true;
             }
             $Current_Modify_Entries_Display_Amount = $New_Amount;
             $Modify_Entires_Number_Of_Blocks = $Modify_Enties_Total_Amount/$Current_Modify_Entries_Display_Amount + (($Current_Modify_Entries_Display_Amount % $Modify_Enties_Total_Amount)? 1:0);

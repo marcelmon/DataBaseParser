@@ -193,4 +193,45 @@
 		}
 	}
 
+
+
+//FOR FIRST PAGE
+	function Test_Upload_Text(){
+	    var the_text = document.getElementById("attribute_changer_file_to_upload");
+	    if(the_text.innerHTML == "") {
+	        document.getElementById("error_printing").innerHTML="Error: No Text Input";
+	        return;
+	    }
+	    else{
+	        if(the_text.innerHTML[0].length > 1000000000) {
+	            document.getElementById("error_printing").innerHTML="Error: Text Cannot Exceed 1 Billion Characters";
+	            return;
+	        }
+	        else{
+	            document.getElementById("text_upload_form").submit();
+	        }
+	    }
+	}
+
+	function Test_Upload_File(){
+	    var the_file = document.getElementById("attribute_changer_text_to_upload");
+	    if(!the_file.files) {
+	        document.getElementById("error_printing").innerHTML="Error: Not Supported By This Browser";
+	        return;
+	    }
+	    if(!the_file.files[0]) {
+	        document.getElementById("error_printing").innerHTML="Error: Must Have File Selected";
+	        return;
+	    }
+	    else{
+	        if(the_file.files[0].size > 1000000000) {
+	            document.getElementById("error_printing").innerHTML="Error: File Cannot Exceed 1GB";
+	            return;
+	        }
+	        else{
+	            document.getElementById("file_upload_form").submit();
+	        }
+	    }
+	}
+
 </script>

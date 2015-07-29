@@ -48,16 +48,20 @@
                 }
             }
             if(count($Columns_To_Accept) == 0) {
-                //change nothing or set to current set 
-                return;
+                //email is not an attribute, might still have emails
             }
             if(!isset($_POST['Hidden_New_Entry_List'])) {
                 //error
-                return;
+                print("<html><body>THERE WAS AN ERROR WITH THE HIDDEN INPUT</body></html>");
+
             }
-            foreach ($_POST['Hidden_New_Entry_List'] as $hidden_email_key => $include_value) {
+            else foreach ($_POST['Hidden_New_Entry_List'] as $hidden_email_key => $include_value) {
                 if(!isset($_POST['New_Entry_List'][$hidden_email_key]['include'])) {
                     unset($Commited_New_Entires[$hidden_email_key]);
+                }
+                else if(count($Columns_To_Accept) == 0) {
+                        $Commited_New_Entires[$hidden_email_key] = array();
+                    }
                 }
                 else{
                     $attribute_values = $_POST['New_Entry_List'][$hidden_email_key]; 
@@ -126,15 +130,18 @@
             }
             if(count($Columns_To_Accept) == 0) {
                 //change nothing or set to current set 
-                return;
+
             }
             if(!isset($_POST['Hidden_Modify_Entry_List'])) {
                 //error
-                return;
+                print("<html><body>THERE WAS AN ERROR WITH THE HIDDEN INPUT</body></html>");
             }
-            foreach ($_POST['Hidden_Modify_Entry_List'] as $hidden_email_key => $include_value) {
+            else foreach ($_POST['Hidden_Modify_Entry_List'] as $hidden_email_key => $include_value) {
                 if(!isset($_POST['Modify_Entry_List'][$hidden_email_key]['include'])) {
                     unset($Commited_Modify_Entires[$hidden_email_key]);
+                }
+                if(count($Columns_To_Accept) == 0) {
+                    $Commited_Modify_Entires[$hidden_email_key] = array();
                 }
                 else{
                     $attribute_values = $_POST['Modify_Entry_List'][$hidden_email_key]; 
@@ -190,32 +197,32 @@
 
     if(isset($_POST['New_Entries_Table_Submit_All']) && $_POST['New_Entries_Table_Submit_All'] == 'New_Entries_Table_Submit_All' ) {
         Initialize_Modify_Entries_Display();
-        $HTML_TO_DISPLAY = Get_New_Entry_Table_Block(0);
-        //HERE NEED TO SETUP HEADERS TO PRINT
+        $HTML_TO_DISPLAY = Get_New_Entry_Table_Block();
+        print('<html><body><script src="'.$javascript_src.'""></script>'.$HTML_TO_DISPLAY.'</body></html>');
 
     }
 
     if(isset($_Post['New_Entries_Table_Next_Page']) && $_Post['New_Entries_Table_Next_Page'] == 'New_Entries_Table_Next_Page') {
         $HTML_TO_DISPLAY = New_Entry_Display_Next_Page();
         if($HTML_TO_DISPLAY == false) {
-            $HTML_TO_DISPLAY = Get_New_Entry_Table_Block(NEED TO GET CURRENT BLOCK CHANGE THIS FUNC);
+            $HTML_TO_DISPLAY = Get_New_Entry_Table_Block();
         }
-           
-        //headers
+        $javascript_src = dirname(__FILE__) . '/Attribute_Changer_PLugin/Script_For_Attribute_Changer.js';
+        print('<html><body><script src="'.$javascript_src.'""></script>'.$HTML_TO_DISPLAY.'</body></html>');
     }
 
     if(isset($_Post['New_Entries_Table_Previous_Page']) && $_Post['New_Entries_Table_Previous_Page'] == 'New_Entries_Table_Previous_Page') {
         $HTML_TO_DISPLAY = New_Entry_Display_Previous_Page();
         if($HTML_TO_DISPLAY == false) {
-            $HTML_TO_DISPLAY = Get_New_Entry_Table_Block(NEED TO GET CURRENT BLOCK CHANGE THIS FUNC);
+            $HTML_TO_DISPLAY = Get_New_Entry_Table_Block();
         }
-        //headers
+        print('<html><body><script src="'.$javascript_src.'""></script>'.$HTML_TO_DISPLAY.'</body></html>');
     }
  
     if(isset($_Post['New_Entry_Change_Display_Amount']) && $_Post['New_Entry_Change_Display_Amount'] == 'New_Entry_Change_Display_Amount') {
 
         if(isset($_POST['New_Entries_New_Display_Amount'])) {
-            if($_POST['New_Entries_New_Display_Amount'] != (10|100|1000|10000)){
+            if($_POST['New_Entries_New_Display_Amount'] != (10|100|1000|10000|"all")){
 
             }
             else{
@@ -229,6 +236,7 @@
             }
         }
         $HTML_TO_DISPLAY = Get_New_Entry_Table_Block();
+        print('<html><body><script src="'.$javascript_src.'""></script>'.$HTML_TO_DISPLAY.'</body></html>');
         
     }
 
@@ -236,30 +244,30 @@
 
     if(isset($_POST['Modify_Entries_Table_Submit_All']) && $_POST['Modify_Entries_Table_Submit_All'] == 'Modify_Entries_Table_Submit_All' ) {
 
-        //NEED TO ACTUALLY PROCESS ALL THE NEW VALUES
+        print(Process_All_New_And_Modify());
     }
 
     if(isset($_Post['Modify_Entries_Table_Next_Page']) && $_Post['Modify_Entries_Table_Next_Page'] == 'Modify_Entries_Table_Next_Page') {
         $HTML_TO_DISPLAY = Modify_Entry_Display_Next_Page();
         if($HTML_TO_DISPLAY == false) {
-            $HTML_TO_DISPLAY = Get_Modify_Entry_Table_Block(NEED TO GET CURRENT BLOCK CHANGE THIS FUNC);
+            $HTML_TO_DISPLAY = Get_Modify_Entry_Table_Block();
         }
            
-        //headers
+        print('<html><body><script src="'.$javascript_src.'""></script>'.$HTML_TO_DISPLAY.'</body></html>');
     }
 
     if(isset($_Post['Modify_Entries_Table_Previous_Page']) && $_Post['Modify_Entries_Table_Previous_Page'] == 'Modify_Entries_Table_Previous_Page') {
         $HTML_TO_DISPLAY = Modify_Entry_Display_Previous_Page();
         if($HTML_TO_DISPLAY == false) {
-            $HTML_TO_DISPLAY = Get_Modify_Entry_Table_Block(NEED TO GET CURRENT BLOCK CHANGE THIS FUNC);
+            $HTML_TO_DISPLAY = Get_Modify_Entry_Table_Block();
         }
-        //headers
+        print('<html><body><script src="'.$javascript_src.'""></script>'.$HTML_TO_DISPLAY.'</body></html>');
     }
  
     if(isset($_Post['Modify_Entry_Change_Display_Amount']) && $_Post['Modify_Entry_Change_Display_Amount'] == 'Modify_Entry_Change_Display_Amount') {
 
         if(isset($_POST['Modify_Entries_New_Display_Amount'])) {
-            if($_POST['Modify_Entries_New_Display_Amount'] != (10|100|1000|10000)){
+            if($_POST['Modify_Entries_New_Display_Amount'] != (10|100|1000|10000|"all")){
 
             }
             else{
@@ -273,6 +281,7 @@
             }
         }
         $HTML_TO_DISPLAY = Get_Modify_Entry_Table_Block();
+        print('<html><body><script src="'.$javascript_src.'""></script>'.$HTML_TO_DISPLAY.'</body></html>');
         
     }
 

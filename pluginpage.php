@@ -7,10 +7,9 @@ if ($GLOBALS["commandline"]) {
  echo 'not to oppened by command line';
  die();
 }
+$javascript_src = dirname(__FILE__) . '/Attribute_Changer_PLugin/Script_For_Attribute_Changer.js';
 
-if(!isset($_POST)) {
-	$page_print =  '<html>
-<body>
+$page_print =  '
 <div>Attribute Changer</div>
 <div id="error_printing"></div>
 <form action="" method="post" enctype="multipart/form-data" id="file_upload_form">
@@ -18,7 +17,6 @@ if(!isset($_POST)) {
     (must be comma separated text)
     <input type="file" name="attribute_changer_file_to_upload" id="attribute_changer_file_to_upload">
     <input type="button" value="attribute_changer_upload_file_button" name="attribute_changer_upload_file_button" id="attribute_changer_upload_file_button" onClick="Test_Upload_File()">
-    file_name:<input type="text" name="attribute_changer_file_name">
 </form>
 <form action="" method="post" enctype="multipart/form-data" id="text_upload_form">
     Copy file to upload:
@@ -26,47 +24,12 @@ if(!isset($_POST)) {
     <input type="text" name="attribute_changer_text_to_upload" id="attribute_changer_text_to_upload">
     <input type="button" value="attribute_changer_upload_text" name="attribute_changer_upload_text" onClick="Test_Upload_Text()">
     desired_file_name:<input type="text" name="attribute_changer_text_name">
-</form>
+</form>'
 
-</body>
-</html>
-<script>
-function Test_Upload_Text(){
-    var the_text = document.getElementById("attribute_changer_file_to_upload");
-    if(the_text.innerHTML == "") {
-        document.getElementById("error_printing").innerHTML="Error: No Text Input";
-        return;
-    }
-    else{
-        if(the_text.innerHTML[0].length > 1000000000) {
-            document.getElementById("error_printing").innerHTML="Error: Text Cannot Exceed 1 Billion Characters";
-            return;
-        }
-        else{
-            document.getElementById("text_upload_form").submit();
-        }
-    }
-}
-function Test_Upload_File(){
-    var the_file = document.getElementById("attribute_changer_text_to_upload");
-    if(!the_file.files) {
-        document.getElementById("error_printing").innerHTML="Error: Not Supported By This Browser";
-        return;
-    }
-    if(!the_file.files[0]) {
-        document.getElementById("error_printing").innerHTML="Error: Must Have File Selected";
-        return;
-    }
-    else{
-        if(the_file.files[0].size > 1000000000) {
-            document.getElementById("error_printing").innerHTML="Error: File Cannot Exceed 1GB";
-            return;
-        }
-        else{
-            document.getElementById("file_upload_form").submit();
-        }
-    }
-}';
+;
+if(!isset($_POST)) {
+	
+    print('<html><head><script src="'.$javascript_src.'"></script></head><body>'.$page_print.'</body></html>');
 }
 
 else{
@@ -80,12 +43,14 @@ else{
     $new_html = '<html><body>';
     // Check if file already exists
     if (file_exists($target_file)) {
-        $new_html = $new_html."Sorry, file already exists.";
-        $uploadOk = 0;
+        while(file_exists( ($target_file = $target_file.strval(rand(0,1000))))){
+
+        }
+        $new_html = $new_html."File already exists, added rand value. File is:. ".basename($target_file);
     }
     // Check file size
     if ($_FILES["attribute_changer_file_to_upload"]["size"] > 1000000000) {
-        $new_html = $new_html."Sorry, your file is too large > 1BG.";
+        $new_html = $new_html."Sorry, your file is too large > 1GB.";
         $uploadOk = 0;
     }
     // Allow certain file formats
@@ -97,9 +62,7 @@ else{
     }
     // Check if $uploadOk is set to 0 by an error
     if ($uploadOk == 0) {
-        $new_html = $new_html."Sorry, your file was not uploaded.";
-        $new_html = $new_html.'</body></html>';
-        print($new_html);
+        $new_html = $new_html."Sorry, your file was not uploaded.".$page_print;
     // if everything is ok, try to upload file
     } else {
         if (move_uploaded_file($_FILES["attribute_changer_file_to_upload"]["tmp_name"], $target_file)) {
@@ -107,22 +70,20 @@ else{
 
             $cols_match = Get_Attribute_File_Column_Match($target_file);
             if($cols_match == '') {
-                $new_html = $new_html.'There was an error with the table forming';
-                $new_html = $new_html.'</body></html>';
-                print($new_html);
+                $new_html = $new_html.'There was an error with the table forming'.$page_print;
+
             }
             else{
                 $new_html= $new_html.$cols_match;
-                $new_html = $new_html.'</body></html>';
-                print($new_html);
             }
         } 
         else {
-            $new_html = $new_html."Sorry, there was an error uploading your file.";
-            $new_html = $new_html.'</body></html>';
-            print($new_html);
+            $new_html = $new_html."Sorry, there was an error uploading your file.".$page_print;
         }
     }
+
+    $new_html = $new_html.'</body></html>';
+    print($new_html);
 
 }
 
@@ -221,7 +182,9 @@ if(isset($_POST['submit']['File_Column_Match_Submit'])) {
                 $display_html = $display_html.'There is nothing new or to modify</body></html>'
             }
         }
-    }      
+    }
+    fclose($fp);
+    print($display_html);      
 }
 
 $FILE_LOCATION;
@@ -235,15 +198,37 @@ function Get_Attribute_File_Column_Match($new_file_loc) {
     $columns = array();
     $current_word = '';
     $current_char ='';
+
+
     while(($current_char = fread($fp, 1)) != '\n') {
         if($current_char == ',') {
             array_push($columns, $current_word);
             $current_word = '';
         }
         else{
-
+            $current_word = $current_word.$current_char;
         }
     }
+
+    $first_few_rows = array();
+    $current_row;
+    for ($i=0; $i < 6; $i++) { 
+        while(($current_char = fread($fp, 1)) != '\n') {
+            if(feof($fp)) {
+                break;
+            }
+            $current_row = $current_row.$current_char;
+        }
+        array_push($first_few_rows, $current_row);
+        $current_row = '';
+        if(feof($fp)) {
+            break;
+        }
+    }
+
+    $first_row
+    array_push($columns, $current_word);
+
     $attribute_name_query = sprintf('select name from %s', $GLOBALS['tables']['attribute']);
     $return_attributes = Sql_Fetch_Array_Query($attribute_name_query);
     if(!$return_attributes){
@@ -263,6 +248,7 @@ function Get_Attribute_File_Column_Match($new_file_loc) {
         $column_match_return_string = $cell_string.'</td>';
     }
     $column_match_return_string = $column_match_return_string.'</table><input type="submit" name="File_Column_Match_Submit" </form>';
+    fclose($fp);
     return $column_match_return_string;
 }
 
