@@ -346,7 +346,7 @@
         function Get_New_Entry_Table_Block() {
             
             $Current_New_Entry_Block = array_slice($New_Entry_List, $Current_New_Entry_Block_Number*$Current_New_Entries_Display_Amount, $Current_New_Entries_Display_Amount);
-            $HTML_Display_Text = sprintf('<form name="New_Entry_Submit_Form_Block__%d" action="%s" method="post">', $Current_New_Entry_Block_Number, 'self');
+            $HTML_Display_Text = sprintf('<form name="New_Entry_Submit_Form_Block__%d" action="%s" method="post"><input type="hidden" name="New_Entry_Form_Submitted" value="submitted">', $Current_New_Entry_Block_Number, 'self');
             $HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="New_User_Attribute_Select_Table_Block__%d">', $Current_New_Entry_Block_Number);
             $HTML_table_row = sprintf('<tr><td>EMAIL<br><input type="button" id="New_Entry_Include_All_Emails" name="New_Entry_Include_All_Emails" value="Include All Emails" onClick="checkAll_NewEntry_Emails()"></input>/td>';
             $HTML_table_row = sprintf('<tr><td>EMAIL<br><input type="button" id="New_Entry_Remove_All_Emails" name="New_Entry_Include_Remove_Emails" value="Remove All Emails" onClick="removeAll_NewEntry_Emails()"></input>/td>';
@@ -368,10 +368,10 @@
             $HTML_Display_Text = $HTML_Display_Text.$HTML_table_row.'</tr>';
             foreach ($Current_New_Entry_Block as $email_key => $new_user_attributes_and_values) {
                 if(isset($Commited_New_Entires[$email_key]) {
-                    $HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="New_Entry_Email" name="New_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input></td>',$email_key, $email_key);
+                    $HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="New_Entry_Email" name="New_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input><input type="hidden" name="Hidden_New_Entry_List[%s]" value="submitted"></td>',$email_key, $email_key, $email_key);
                 }
                 else{
-                    $HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="New_Entry_Email" name="New_Entry_List[%s][\'include\']" value="include">Include This Email</input></td>',$email_key, $email_key);
+                    $HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="New_Entry_Email" name="New_Entry_List[%s][\'include\']" value="include">Include This Email</input><input type="hidden" name="Hidden_New_Entry_List[%s]" value="submitted"></td>',$email_key, $email_key, $email_key);
                 }
                 //commited_new_entries[email]: attribute,value
                 foreach ($attribute_list as $attribute_name => $attribute_info) {
@@ -506,7 +506,7 @@
         }
         function Get_Modify_Entry_Table_Block() {
             $Current_Modify_Entry_Block = array_slice($Modify_Entry_List, $Current_Modify_Entry_Block_Number*$Current_Modify_Entries_Display_Amount, $Current_Modify_Entries_Display_Amount);
-            $HTML_Display_Text = sprintf('<form name="Modify_Entry_Submit_Form_Block__%d" action="%s" method="post">', $Current_Modify_Entry_Block_Number, 'self');
+            $HTML_Display_Text = sprintf('<form name="Modify_Entry_Submit_Form_Block__%d" action="%s" method="post"><input type="hidden" name="Modify_Entry_Form_Submitted" value="submitted">', $Current_Modify_Entry_Block_Number, 'self');
             $HTML_Display_Text = $HTML_Display_Text.sprintf('<table id="Modify_User_Attribute_Select_Table_Block__%d">', $Current_Modify_Entry_Block_Number);
             $HTML_table_row = '<tr><td>EMAIL</td>';
             foreach ($attribute_list as $attribute_name => $attribute_info) {
@@ -528,10 +528,10 @@
                 }
                  
                 if(isset($Commited_Modify_Entries[$email_key])) {
-                    $HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="Modify_Entry_Email" name="Modify_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input></td>',$email_key, $email_key);
+                    $HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="Modify_Entry_Email" name="Modify_Entry_List[%s][\'include\']" value="include" checked>Include This Email</input><input type="hidden" name="Hidden_Modify_Entry_List[%s]" value="submitted"></td>',$email_key, $email_key, $email_key);
                 }
                 else{
-                    $HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="Modify_Entry_Email" name="Modify_Entry_List[%s][\'include\']" value="include">Include This Email</input></td>',$email_key, $email_key);
+                    $HTML_table_row = sprintf('<tr><td>%s<br><input type="checkbox" class="Modify_Entry_Email" name="Modify_Entry_List[%s][\'include\']" value="include">Include This Email</input><input type="hidden" name="Hidden_Modify_Entry_List[%s]" value="submitted"></td>',$email_key, $email_key, $email_key);
                 }
  
                 //first foreach is for current set vals
