@@ -197,7 +197,7 @@
 
 //FOR FIRST PAGE
 	function Test_Upload_Text(){
-	    var the_text = document.getElementById("attribute_changer_file_to_upload");
+	    var the_text = document.getElementById("attribute_changer_text_to_upload");
 	    if(the_text.innerHTML == "") {
 	        document.getElementById("error_printing").innerHTML="Error: No Text Input";
 	        return;
@@ -214,7 +214,7 @@
 	}
 
 	function Test_Upload_File(){
-	    var the_file = document.getElementById("attribute_changer_text_to_upload");
+	    var the_file = document.getElementById("attribute_changer_file_to_upload");
 	    if(!the_file.files) {
 	        document.getElementById("error_printing").innerHTML="Error: Not Supported By This Browser";
 	        return;

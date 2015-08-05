@@ -32,8 +32,8 @@ if(!isset($_POST)) {
     print('<html><head><script src="'.$javascript_src.'"></script></head><body>'.$page_print.'</body></html>');
 }
 
-else{
-    if(isset($_POST['attribute_changer_file_to_upload'])) {
+
+else if(isset($_POST['attribute_changer_file_to_upload'])) {
         //possible check if dir exists
     $target_dir = dirname(__FILE__) . '/Attribute_Changer_PLugin/temp_table_uploads/';
     $target_file = $target_dir . basename($_FILES["attribute_changer_file_to_upload"]["name"]);
@@ -50,19 +50,19 @@ else{
     }
     // Check file size
     if ($_FILES["attribute_changer_file_to_upload"]["size"] > 1000000000) {
-        $new_html = $new_html."Sorry, your file is too large > 1GB.";
+        $new_html = $new_html."Sorry, your file is too large > 1GB. ";
         $uploadOk = 0;
     }
     // Allow certain file formats
 
     //add other comma separated
     if($imageFileType != "csv") {
-        $new_html = $new_html."Sorry, only csv allowed.";
+        $new_html = $new_html."Sorry, only csv allowed. ";
         $uploadOk = 0;
     }
     // Check if $uploadOk is set to 0 by an error
     if ($uploadOk == 0) {
-        $new_html = $new_html."Sorry, your file was not uploaded.".$page_print;
+        $new_html = $new_html."Sorry, your file was not uploaded. ".$page_print;
     // if everything is ok, try to upload file
     } else {
         if (move_uploaded_file($_FILES["attribute_changer_file_to_upload"]["tmp_name"], $target_file)) {
@@ -188,6 +188,7 @@ if(isset($_POST['submit']['File_Column_Match_Submit'])) {
 }
 
 $FILE_LOCATION;
+
 function Get_Attribute_File_Column_Match($new_file_loc) {
     if(!file_exists($new_file_loc)) {
         return '';
@@ -234,6 +235,7 @@ function Get_Attribute_File_Column_Match($new_file_loc) {
     if(!$return_attributes){
         return ''; //because lol
     }
+
 
     $column_match_return_string = '
     <form action="" method="post" id="file_column_select_form">

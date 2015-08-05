@@ -20,7 +20,7 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 			'pluginpage' => array('category' => 'subscribers'),
 		);
 
-		this->$coderoot = dirname(__FILE__) . 'Attribute_Changer_PLugin/';
+		this->$coderoot = PLUGIN_ROOTDIR.'Attribute_Changer_PLugin/';
     }
 
 

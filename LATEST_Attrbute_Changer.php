@@ -517,7 +517,7 @@
             $HTML_table_row = '<tr><td>EMAIL</td>';
             foreach ($attribute_list as $attribute_name => $attribute_info) {
                 $HTML_table_row = $HTML_table_row.sprintf('<td>%s<input type="CHECKBOX" name="Modify_Entry_Attribute_Column_Select[%s]" value="checked">',$attribute_name, $attribute_name);
-                if($attribute_info['type'] === 'checkboxgroup') {100
+                if($attribute_info['type'] === 'checkboxgroup') {
                     $HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="Modify_Entry_Include_All_Checkboxgroup_%s" value="Include All Checkboxgroup Values" onClick="checkAll_ModifyEntry_CheckboxGroup(%s)"></input>', $attribute_name, $attribute_name);
                     $HTML_table_row = $HTML_table_row.sprintf('<br><input type="button" name="Modify_Entry_Remove_All_Checkboxgroup_%s" value="Remove All Checkboxgroup Values" onClick="removeAll_ModifyEntry_CheckboxGroup(%s)"></input>', $attribute_name, $attribute_name);
                 }
