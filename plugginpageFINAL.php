@@ -33,6 +33,11 @@ if(!isset($_POST)) {
     print('<html><head><script src="'.$javascript_src.'"></script></head><body>'.$page_print.'</body></html>');
 }
 
+
+
+/////////////////////////////////////////////PUT SOMEWHEREE
+
+//used once the file has been loaded, can put into another file instead of php_self
 function Test_Create_Temp_Dir() {
     $temp_dir = PLUGIN_ROOTDIR.'Attribute_Changer_PLugin/temp_table_uploads/';
     if(!file_exists(PLUGIN_ROOTDIR.'Attribute_Changer_PLugin/')) {
