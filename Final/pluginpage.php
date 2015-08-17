@@ -7,7 +7,7 @@ if ($GLOBALS["commandline"]) {
  echo 'not to oppened by command line';
  die();
 }
-
+require_once(dirname(__FILE__).'Attribute_Changer_Plugin.php');
 $javascript_src = dirname(__FILE__) . '/Attribute_Changer_PLugin/Script_For_Attribute_Changer.js';
 
 

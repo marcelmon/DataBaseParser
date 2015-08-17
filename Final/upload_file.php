@@ -5,7 +5,8 @@ if ($GLOBALS["commandline"]) {
  echo 'not to oppened by command line';
  die();
 }
-require_once(dirname(__FILE__).'/attribute_changer_classy.php');
+require_once(dirname(__FILE__).'New_And_Modify_Entry_Table_Display.php');
+require_once(dirname(__FILE__).'Attribute_Changer_Plugin.php');
 
 $javascript_src = dirname(__FILE__) . '/Attribute_Changer_PLugin/Script_For_Attribute_Changer.js';
 
@@ -26,7 +27,7 @@ $page_print =  '
     desired_file_name:<input type="text" name="attribute_changer_text_name">
 </form>';
 
-$attribute_changer;
+$attribute_changer = $GLOBALS['plugins']['Attribute_Changer_Plugin'];
 $FILE_LOCATION;
 
 if(!isset($_POST)) {
@@ -36,13 +37,14 @@ if(!isset($_POST)) {
 
 else if(isset($_POST['attribute_changer_file_to_upload'])) {
 
-    if(!Test_Create_Temp_Dir()) {
+    if(!$attribute_changer->Test_Create_Temp_Dir()) {
         print("<html><body>Error with temp directory</body></html>");
         return;
     }
 
 //HERE HAVE A CHECK FOR GOOD SETUP
-    $attribute_changer = new AttributeChanger();
+    $attribute_changer->New_Session();
+    
 
 
     $target_dir = PLUGIN_ROOTDIR.'/Attribute_Changer_PLugin/temp_table_uploads/';
@@ -76,17 +78,18 @@ else if(isset($_POST['attribute_changer_file_to_upload'])) {
     // if everything is ok, try to upload file
     } else {
         if (move_uploaded_file($_FILES["attribute_changer_file_to_upload"]["tmp_name"], $target_file)) {
-            $new_html = $new_html."<div>The file ". basename( $_FILES["attribute_changer_file_to_upload"]["name"]). " has been uploaded.</div>";
+            $new_html = $new_html."<div>The file ". basename($target_file). " has been uploaded.</div>";
 
-            $cols_match = $attribute_changer->Get_Attribute_File_Column_Match($target_file);
+            $attribute_changer->$Current_Session->Set_File_Location($target_file);
+            $cols_match = $attribute_changer->Get_Attribute_File_Column_Match();
 
-            if($cols_match == '') {
+            if($cols_match == ('ERROR NO CURRENT SESSION'|"ERROR WITH SESSION FILE LOCATION"|'') ) {
                 $new_html = $new_html.'<div>There was an error with the column select table forming.</div>'.$page_print;
 
             }
             else{
                 $new_html= $new_html.$cols_match;
-                $FILE_LOCATION = $target_file;
+                
             }
         } 
         else {
@@ -105,17 +108,12 @@ else if(isset($_POST['submit']['File_Column_Match_Submit'])) {
         //shouldnt happen .... else user needs to be WARNEDDDDD
     }
     else if(!isset($_POST['attribute_to_match']['email'])) {
+
+        //this can be done in JS
         $display_html = "<html><body>no email column selected</body></html>";
     }
-    else if(!isset($_POST['file_location'])){
-
-    }
-    else if(!file_exists($_POST['file_location'])) {
-
-    }
     else{
-        $FILE_LOCATION = $_POST['file_location'];
-        $attribute_changer = new AttributeChanger();
+        $FILE_LOCATION = $GLOBALS['plugins']['Attribute_Changer_Plugin']->$Current_Session->Get_File_Location();
 
         asort($_POST['attribute_to_match'], SORT_NUMERIC);
         //so that the columns are matched, easier to read the file from comma to comma
@@ -125,7 +123,7 @@ else if(isset($_POST['submit']['File_Column_Match_Submit'])) {
             //skip the first row as this is just the csv defined column name
         }
         if(feof($fp)) {
-            //....
+            //....only 1 line whhaaat
         }
 
         $file_attribute_value_array = array();
@@ -165,7 +163,7 @@ else if(isset($_POST['submit']['File_Column_Match_Submit'])) {
                         }
                     }
                     if(isset($new_attribute_value_array['email'])) {
-                        $attribute_changer->Updated_Test_Entry($new_attribute_value_array);
+                         $attribute_changer->Test_Entry($new_attribute_value_array);
                     } 
                 }
  
@@ -185,7 +183,7 @@ else if(isset($_POST['submit']['File_Column_Match_Submit'])) {
                     }
                 }
                 if(isset($new_attribute_value_array['email'])) {
-                    $attribute_changer->Updated_Test_Entry($new_attribute_value_array);
+                     $attribute_changer->Test_Entry($new_attribute_value_array);
                 } 
             }
         }
