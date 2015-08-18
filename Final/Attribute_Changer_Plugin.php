@@ -21,29 +21,29 @@ class Attribute_Changer_PLugin extends phplistPlugin {
     {
         parent::__construct();
 
-        this->pageTitles = array( // Entries in the plugin menu of the dashboard
+        $this->pageTitles = array( // Entries in the plugin menu of the dashboard
 			'pluginpage' => 'Begin Data Collection',
 		);
 		  
-		this->topMenuLinks = array( // Entries in the top menu at the top of each page
+		$this->topMenuLinks = array( // Entries in the top menu at the top of each page
 			'pluginpage' => array('category' => 'subscribers'),
 		);
 
-		this->$coderoot = dirname(__FILE__).'/Attribute_Changer_Plugin/';
+		$this->coderoot = dirname(__FILE__).'/Attribute_Changer_Plugin/';
 
-		this->$name = "Attribute_Changer_Plugin";
+		$this->name = "Attribute_Changer_Plugin";
 
-		// this->$sessions = array();
-		// this->$session_increment = 1;
+		// $this->sessions = array();
+		// $this->session_increment = 1;
 
-        this->$Current_Session = null;
+        $this->Current_Session = null;
     }
 
     function New_Session() {
-        if(this->$Current_Session != null) {
-            if(isset(this->$Current_Session->$file_location)) {
-                if(is_file(this->$Current_Session->$file_location)) {
-                    unlink(this->$Current_Session->$file_location);
+        if($this->Current_Session != null) {
+            if(isset($this->Current_Session->$file_location)) {
+                if(is_file($this->Current_Session->$file_location)) {
+                    unlink($this->Current_Session->$file_location);
                 }
             }
         }
@@ -51,6 +51,16 @@ class Attribute_Changer_PLugin extends phplistPlugin {
         return this->Current_Session;
     }
 
+    function close_session() {
+        if($this->Current_Session != null) {
+            if(isset($this->Current_Session->$file_location)) {
+                if(is_file($this->Current_Session->$file_location)) {
+                    unlink($this->Current_Session->$file_location);
+                }
+            }
+            $this->Current_Session = null;
+        }
+    }
 
     function Test_Create_Temp_Dir() {
         $temp_dir = PLUGIN_ROOTDIR.'Attribute_Changer_Plugin/temp_table_uploads/';
@@ -80,11 +90,11 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 
 
         //multiple per column as ,"val, val, val",
-        if(this->$Current_Session == null) {
+        if($this->Current_Session == null) {
             return "ERROR NO CURRENT SESSION";
         }
 
-        $Session = this->$Current_Session;
+        $Session = $this->Current_Session;
 
         if($Session->$file_location == null || !file_exists($Session->$file_location)) {
             return "ERROR WITH SESSION FILE LOCATION";
@@ -157,11 +167,11 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 
     function Test_Entry($entry) {
 
-        if(this->$Current_Session == null) {
+        if($this->Current_Session == null) {
             return "ERROR NO CURRENT SESSION";
         }
 
-        $Session = this->$Current_Session;
+        $Session = $this->Current_Session;
 
 
         //entry is [email]=>array (attribute, value)
@@ -399,9 +409,25 @@ class Attribute_Changer_PLugin extends phplistPlugin {
         $Current_Users_Values;
 
 
+        $Current_Modify_Entries_Display_Amount;
+        $Modify_Enties_Total_Amount;
+        $Modify_Entires_Number_Of_Blocks;
+        $Current_Modify_Entry_Block_Number;
+
         $Committed_Modify_Entries;
 
+
+
+        //either 10, 100, 1000, 10000, all
+        //default 100
+        $Current_New_Entries_Display_Amount;
+        $New_Entries_Total_Amount;
+        $New_Entires_Number_Of_Blocks;
+        $Current_New_Entry_Block_Number;
+
         $Committed_New_Entries;
+
+
 
 
         function __construct() {
@@ -410,36 +436,36 @@ class Attribute_Changer_PLugin extends phplistPlugin {
             $query = sprintf('select * from %s', $GLOBALS['tables']['attribute']);
             $attribute_data_return = Sql_Query($query); 
             if($attribute_data_return) {
-                this->$attribute_list = array();
+                $this->attribute_list = array();
 
-                this->$attribute_value_ids = array();
+                $this->attribute_value_ids = array();
 
                 while(($attribute_data = Sql_fetch_array($attribute_data_return))) {
                     if(!isset( ($attribute_data['id']) | ($attribute_data['name']) | ($attribute_data['type']) )) {
                         //not known format, cannot use
                     }
                     else{
-                        if(isset(this->$attribute_list[$attribute_data['name']])) {
+                        if(isset($this->attribute_list[$attribute_data['name']])) {
                             //cannot have duplicates
                             continue;
                         }
                         //use the attribute list to get type and value information
-                        this->$attribute_list[$attribute_data['name']] = $attribute_data;
+                        $this->attribute_list[$attribute_data['name']] = $attribute_data;
 
                         //must check tables for values
                         if($attribute_data['type'] === ("radio"|"checkboxgroup"|"select"|"checkbox")) {
 
                             if(!isset($attribute_data['tablename'])) {
-                                unset(this->$attribute_list[$attribute_data['name']]);
+                                unset($this->attribute_list[$attribute_data['name']]);
                             }
 
                             else {
 
-                                if(isset(this->$attribute_value_ids[$attribute_data['name']])) {
+                                if(isset($this->attribute_value_ids[$attribute_data['name']])) {
                                     continue;
                                 }
 
-                                this->$attribute_value_ids[$attribute_data['name'] = array();
+                                $this->attribute_value_ids[$attribute_data['name'] = array();
 
                                 //must query to get the allowed values
                                 $value_table_name = $table_prefix."listattr_".$attribute_data["tablename"];
@@ -453,14 +479,14 @@ class Attribute_Changer_PLugin extends phplistPlugin {
                                         $value_id = Sql_Fetch_Row_Query($value_id_query);
 
                                         if($value_id[0]) {
-                                            this->$attribute_value_ids[$attribute_data['name']][$row[0]] = $value_id[0];
-                                            array_push(this->$attribute_list[$attribute_data['name']]['allowed_values'], $row[0]);
+                                            $this->attribute_value_ids[$attribute_data['name']][$row[0]] = $value_id[0];
+                                            array_push($this->attribute_list[$attribute_data['name']]['allowed_values'], $row[0]);
                                         }
                                     }
                                 }
                                 else{
-                                    unset(this->$attribute_list[$attribute_data['name']]['allowed_values']);
-                                    unset(this->$attribute_value_ids[$attribute_data['name']]);
+                                    unset($this->attribute_list[$attribute_data['name']]['allowed_values']);
+                                    unset($this->attribute_value_ids[$attribute_data['name']]);
                                 } 
                             }
                         }
@@ -475,23 +501,23 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 
                 //PRINT AN ERROR I GUESS LOL
             }
-            this->$New_Entry_List = array();
-            this->$Modify_Entry_List = array();
+            $this->New_Entry_List = array();
+            $this->Modify_Entry_List = array();
 
-            this->$Current_Users_Values = array();
+            $this->Current_Users_Values = array();
 
-            this->$Committed_Modify_Entries = array();
+            $this->Committed_Modify_Entries = array();
 
-            this->$Committed_New_Entries = array();
+            $this->Committed_New_Entries = array();
         }
 
         function Set_File_Location ($file_name) {
 
-            this->$file_location = $file_name;
+            $this->file_location = $file_name;
         }
 
         function Get_File_Location() {
-            return this->$file_location;
+            return $this->file_location;
         }
 
         function Commit_Modify_Entiry($entry, $email_key) {
@@ -532,36 +558,36 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 //             $query = sprintf('select * from %s', $GLOBALS['tables']['attribute']);
 //             $attribute_data_return = Sql_Query($query); 
 //             if($attribute_data_return) {
-//                 this->$attribute_list = array();
+//                 $this->attribute_list = array();
 
-//                 this->$attribute_value_ids = array();
+//                 $this->attribute_value_ids = array();
 
 //                 while(($attribute_data = Sql_fetch_array($attribute_data_return))) {
 //                     if(!isset( ($attribute_data['id']) | ($attribute_data['name']) | ($attribute_data['type']) )) {
 //                         //not known format, cannot use
 //                     }
 //                     else{
-//                         if(isset(this->$attribute_list[$attribute_data['name']])) {
+//                         if(isset($this->attribute_list[$attribute_data['name']])) {
 //                             //cannot have duplicates
 //                             continue;
 //                         }
 //                         //use the attribute list to get type and value information
-//                         this->$attribute_list[$attribute_data['name']] = $attribute_data;
+//                         $this->attribute_list[$attribute_data['name']] = $attribute_data;
 
 //                         //must check tables for values
 //                         if($attribute_data['type'] === ("radio"|"checkboxgroup"|"select"|"checkbox")) {
 
 //                             if(!isset($attribute_data['tablename'])) {
-//                                 unset(this->$attribute_list[$attribute_data['name']]);
+//                                 unset($this->attribute_list[$attribute_data['name']]);
 //                             }
 
 //                             else {
 
-//                                 if(isset(this->$attribute_value_ids[$attribute_data['name']])) {
+//                                 if(isset($this->attribute_value_ids[$attribute_data['name']])) {
 //                                     continue;
 //                                 }
 
-//                                 this->$attribute_value_ids[$attribute_data['name'] = array();
+//                                 $this->attribute_value_ids[$attribute_data['name'] = array();
 
 //                                 //must query to get the allowed values
 //                                 $value_table_name = $table_prefix."listattr_".$attribute_data["tablename"];
@@ -575,14 +601,14 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 //                                         $value_id = Sql_Fetch_Row_Query($value_id_query);
 
 //                                         if($value_id[0]) {
-//                                             this->$attribute_value_ids[$attribute_data['name']][$row[0]] = $value_id[0];
-//                                             array_push(this->$attribute_list[$attribute_data['name']]['allowed_values'], $row[0]);
+//                                             $this->attribute_value_ids[$attribute_data['name']][$row[0]] = $value_id[0];
+//                                             array_push($this->attribute_list[$attribute_data['name']]['allowed_values'], $row[0]);
 //                                         }
 //                                     }
 //                                 }
 //                                 else{
-//                                     unset(this->$attribute_list[$attribute_data['name']]['allowed_values']);
-//                                     unset(this->$attribute_value_ids[$attribute_data['name']]);
+//                                     unset($this->attribute_list[$attribute_data['name']]['allowed_values']);
+//                                     unset($this->attribute_value_ids[$attribute_data['name']]);
 //                                 } 
 //                             }
 //                         }
@@ -597,17 +623,17 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 
 //                 //PRINT AN ERROR I GUESS LOL
 //             }
-//             this->$New_Entry_List = array();
-//             this->$Modify_Entry_List = array();
+//             $this->New_Entry_List = array();
+//             $this->Modify_Entry_List = array();
 
-//             this->$Current_Users_Values = array();
+//             $this->Current_Users_Values = array();
 //         }
 
 //         function Set_Id($new_id) {
-//         	if(isset(this->$id) && this->$id > 0) {
+//         	if(isset($this->id) && $this->id > 0) {
 //         		return;
 //         	}
-//         	this->$id = $new_id; 
+//         	$this->id = $new_id; 
 //         }
 
 //         function Set_File_Location () {
@@ -635,10 +661,10 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 
 
     // function View_All_Sessions() {
-    //  if(count(this->$sessions) == 0) {
+    //  if(count($this->sessions) == 0) {
     //      return false;
     //  }
-    //  return this->$sessions;
+    //  return $this->sessions;
     // }
 
     // function Load_Session($id) {
@@ -651,27 +677,27 @@ class Attribute_Changer_PLugin extends phplistPlugin {
     //      return false;
     //  }
 
-    //  this->$sessions[$id]['active'] = 1;
-    //  return this->$sessions[$id];
+    //  $this->sessions[$id]['active'] = 1;
+    //  return $this->sessions[$id];
     // }
 
 
     // function Close_Session($id) {
-    //  if(!isset(this->$sessions[$id])) {
+    //  if(!isset($this->sessions[$id])) {
     //      return false;
     //  }
 
-    //  this->$sessions[$id]['active'] = 1;
-    //  unset(this->$sessions[$id]);
+    //  $this->sessions[$id]['active'] = 1;
+    //  unset($this->sessions[$id]);
     //  return true;
     // }
 
     // function Close_All_Sessions() {
-    //  if(count(this->$sessions) == 0) {
+    //  if(count($this->sessions) == 0) {
     //      return false;
     //  }
-    //  foreach (this->$sessions as $id_key => $session_data) {
-    //      unset(this->$sessions[$id_key]);
+    //  foreach ($this->sessions as $id_key => $session_data) {
+    //      unset($this->sessions[$id_key]);
     //  }
     //  return true;
     // }
@@ -681,15 +707,15 @@ class Attribute_Changer_PLugin extends phplistPlugin {
     // //have method to determine if there have been changes 
 
     // function Start_New_Session() {
-    //  while(isset(this->$sessions[this->$session_increment])) {
-    //      this->$session_increment++;
+    //  while(isset($this->sessions[$this->session_increment])) {
+    //      $this->session_increment++;
     //  }
-    //  this->$sessions[this->$session_increment] = array();
-    //  $temp_increment = this->$session_increment;
+    //  $this->sessions[$this->session_increment] = array();
+    //  $temp_increment = $this->session_increment;
 
-    //  this->$session_increment++;
+    //  $this->session_increment++;
 
-    //  this->$sessions[$temp_increment]['id'] = $temp_increment;
+    //  $this->sessions[$temp_increment]['id'] = $temp_increment;
 
 
     // }
