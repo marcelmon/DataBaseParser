@@ -32,7 +32,7 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 		$this->coderoot = dirname(__FILE__).'/Attribute_Changer_Plugin/';
 
 		$this->name = "Attribute_Changer_Plugin";
-
+                    
 		// $this->sessions = array();
 		// $this->session_increment = 1;
 
@@ -41,21 +41,21 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 
     function New_Session() {
         if($this->Current_Session != null) {
-            if(isset($this->Current_Session->$file_location)) {
-                if(is_file($this->Current_Session->$file_location)) {
-                    unlink($this->Current_Session->$file_location);
+            if(isset($this->Current_Session->file_location)) {
+                if(is_file($this->Current_Session->file_location)) {
+                    unlink($this->Current_Session->file_location);
                 }
             }
         }
-        this->Current_Session = new Single_Session();
-        return this->Current_Session;
+        $this->Current_Session = new Single_Session();
+        return $this->Current_Session;
     }
 
     function close_session() {
         if($this->Current_Session != null) {
-            if(isset($this->Current_Session->$file_location)) {
-                if(is_file($this->Current_Session->$file_location)) {
-                    unlink($this->Current_Session->$file_location);
+            if(isset($this->Current_Session->file_location)) {
+                if(is_file($this->Current_Session->file_location)) {
+                    unlink($this->Current_Session->file_location);
                 }
             }
             $this->Current_Session = null;
@@ -96,12 +96,12 @@ class Attribute_Changer_PLugin extends phplistPlugin {
 
         $Session = $this->Current_Session;
 
-        if($Session->$file_location == null || !file_exists($Session->$file_location)) {
+        if($Session->file_location == null || !file_exists($Session->file_location)) {
             return "ERROR WITH SESSION FILE LOCATION";
         }
 
         $column_match_return_string = '';
-        $fp = fopen($Current_Session->$file_location, 'r');
+        $fp = fopen($Current_Session->file_location, 'r');
 
         $columns = array();
         $current_word = '';
@@ -126,7 +126,7 @@ class Attribute_Changer_PLugin extends phplistPlugin {
             $number_of_rows = count($first_few_rows);
         }
 
-        if(count($Session->$attribute_list)==0){
+        if(count($Session->attribute_list)==0){
             return "ERROR NO ATTRIBUTES TO CHOOSE FROM";
         }
 
@@ -139,7 +139,7 @@ class Attribute_Changer_PLugin extends phplistPlugin {
         foreach ($columns as $column_key => $column_value) {
             $cell_string = sprintf('<td> Set : %s  to : <br>', $column_value);
 
-            foreach ($Session->$attribute_list as $attribute_name => $attribute_info) {
+            foreach ($Session->attribute_list as $attribute_name => $attribute_info) {
                 $cell_string = $cell_string.sprintf('<input type="radio" name="attribute_to_match[%s]" value="%d" class="%s"><br>', $attribute_name, $column_key, $column_value);
             }
             $cell_string = $cell_string.sprintf('<input type="radio" name="attribute_to_match[%s]" value="%d" class="%s"><br>', 'email', $column_key, "email_class");
@@ -196,38 +196,38 @@ class Attribute_Changer_PLugin extends phplistPlugin {
             }
             else{
                 //will need to create a new user if not already
-                if(isset($Session->$New_Entry_List[$email])) {
+                if(isset($Session->New_Entry_List[$email])) {
                     return true;
                 }
                 else{
-                    $Session->$New_Entry_List[$email] = array();
+                    $Session->New_Entry_List[$email] = array();
                     return true;
                 }
             }
         }
-        if($user_sql_result && !isset($Session->$Current_Users_Values[$email])) {
-            Get_Current_User_Attribute_Values($Session->$Current_Users_Values, $email, $Session->$attribute_list);
+        if($user_sql_result && !isset($Session->Current_Users_Values[$email])) {
+            Get_Current_User_Attribute_Values($Session->Current_Users_Values, $email, $Session->attribute_list);
         }
          
         //if there are attributes, must check each value to look for update
         foreach ($entry as $attribute => $new_attribute_value) {
             //these are single choice values
-            if($Session->$attribute_list[$attribute]['type'] === "radio"|"select"|'checkbox') {
+            if($Session->attribute_list[$attribute]['type'] === "radio"|"select"|'checkbox') {
                 //must check if the possible new value is an allowed value
-                if(in_array($new_attribute_value, $Session->$attribute_list[$attribute]['allowed_values'])) {
+                if(in_array($new_attribute_value, $Session->attribute_list[$attribute]['allowed_values'])) {
                     //this is if the returned user has an id, will always have an id if exists in the database
-                    if(isset($Session->$Current_Users_Values[$email])) {
+                    if(isset($Session->Current_Users_Values[$email])) {
                         //the return query for the user,attrubute does not match the new possible attribute value
-                        if(isset($Session->$Current_Users_Values[$email][$attribute]) && $Session->$Current_Users_Values[$email][$attribute] === $new_attribute_value) {    
+                        if(isset($Session->Current_Users_Values[$email][$attribute]) && $Session->Current_Users_Values[$email][$attribute] === $new_attribute_value) {    
                              
                         }
                         else{
-                            Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Session->$Modify_Entry_List);
+                            Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Session->Modify_Entry_List);
                         }
                     }
                     else{
                         //no user info, add info to list
-                        Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Session->$New_Entry_List);
+                        Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Session->New_Entry_List);
                     }
                 }
                 else{
@@ -235,32 +235,32 @@ class Attribute_Changer_PLugin extends phplistPlugin {
                 }
             }
             //these are multiple choice types, the new attribute value must match
-            else if($Session->$attribute_list[$attribute]['type'] == 'checkboxgroup') {
+            else if($Session->attribute_list[$attribute]['type'] == 'checkboxgroup') {
 
                 $exploded_attribute_values_array = explode(',', $new_attribute_value);
 
                 foreach ($exploded_attribute_values_array as $key => $exploded_attribute_value) {
 
-                    if(in_array($exploded_attribute_value, $Session->$attribute_list[$attribute]['allowed_values'])) {
+                    if(in_array($exploded_attribute_value, $Session->attribute_list[$attribute]['allowed_values'])) {
 
-                        if(isset($Session->$Current_Users_Values[$email])) {
-                            if(isset($Session->$Current_Users_Values[$email][$attribute]) && in_array($exploded_attribute_value, $Session->$Current_Users_Values[$email][$attribute]) {
+                        if(isset($Session->Current_Users_Values[$email])) {
+                            if(isset($Session->Current_Users_Values[$email][$attribute]) && in_array($exploded_attribute_value, $Session->Current_Users_Values[$email][$attribute]) {
 
                             }
                             else{
-                                Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $exploded_attribute_value, $attribute, $Session->$Modify_Entry_List);
+                                Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $exploded_attribute_value, $attribute, $Session->Modify_Entry_List);
                             }
                         }
                         else{
                             //no current attributes, can definately add to list, user exists
-                            Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $exploded_attribute_value, $attribute, $Session->$New_Entry_List);                             
+                            Add_Multi_Entry_To_Modify_Or_New_Entry_List($email, $exploded_attribute_value, $attribute, $Session->New_Entry_List);                             
                         }
                     }
                 }
 
             }
              
-            else if ($Session->$attribute_list[$attribute]['type'] == "date") {
+            else if ($Session->attribute_list[$attribute]['type'] == "date") {
                 $exploded_date =explode('/', $new_attribute_value);
                 if(count($exploded_date) != 3) {
                     //cannot use
@@ -290,31 +290,31 @@ class Attribute_Changer_PLugin extends phplistPlugin {
                         $new_date_value = $day_string.'/'.$month_string.'/'.$year_string;
                     
 
-                        if(isset($Session->$Current_Users_Values[$email][$attribute])) {
-                            if(isset($Session->$Current_Users_Values[$email][$attribute]) && $Session->$Current_Users_Values[$email][$attribute] != $new_date_value) {
+                        if(isset($Session->Current_Users_Values[$email][$attribute])) {
+                            if(isset($Session->Current_Users_Values[$email][$attribute]) && $Session->Current_Users_Values[$email][$attribute] != $new_date_value) {
 
-                                Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_date_value, $attribute, $Session->$Modify_Entry_List);
+                                Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_date_value, $attribute, $Session->Modify_Entry_List);
                             }
                         }
                         else{
-                            Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_date_value, $attribute, $Session->$New_Entry_List);
+                            Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_date_value, $attribute, $Session->New_Entry_List);
                         }
                     }
                 }
             }
-            else if ($Session->$attribute_list[$attribute]['type'] == "textarea"|"textline") {
+            else if ($Session->attribute_list[$attribute]['type'] == "textarea"|"textline") {
                 //this is if the returned user has an id, will always have an id if exists in the database
-                if(isset($Session->$Current_Users_Values[$email])) {
+                if(isset($Session->Current_Users_Values[$email])) {
 
-                    if(isset($Session->$Current_Users_Values[$email][$attribute]) && $new_attribute_value === $Session->$Current_Users_Values[$email][$attribute]) {
+                    if(isset($Session->Current_Users_Values[$email][$attribute]) && $new_attribute_value === $Session->Current_Users_Values[$email][$attribute]) {
 
                     }
                     else{
-                        Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Session->$Modify_Entry_List);
+                        Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $attribute, $Session->Modify_Entry_List);
                     }
                 }
                 else{
-                    Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $Session->$New_Entry_List);
+                    Add_Single_Entry_To_Modify_Or_New_Entry_List($email, $new_attribute_value, $Session->New_Entry_List);
                 }
             }
         }

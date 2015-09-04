@@ -80,7 +80,7 @@ else if(isset($_POST['attribute_changer_file_to_upload'])) {
         if (move_uploaded_file($_FILES["attribute_changer_file_to_upload"]["tmp_name"], $target_file)) {
             $new_html = $new_html."<div>The file ". basename($target_file). " has been uploaded.</div>";
 
-            $attribute_changer->$Current_Session->Set_File_Location($target_file);
+            $attribute_changer->Current_Session->Set_File_Location($target_file);
             $cols_match = $attribute_changer->Get_Attribute_File_Column_Match();
 
             if($cols_match == ('ERROR NO CURRENT SESSION'|"ERROR WITH SESSION FILE LOCATION"|'') ) {

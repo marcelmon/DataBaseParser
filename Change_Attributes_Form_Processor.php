@@ -207,7 +207,6 @@
         if($HTML_TO_DISPLAY == false) {
             $HTML_TO_DISPLAY = Get_New_Entry_Table_Block();
         }
-        $javascript_src = dirname(__FILE__) . '/Attribute_Changer_PLugin/Script_For_Attribute_Changer.js';
         print('<html><body><script src="'.$javascript_src.'""></script>'.$HTML_TO_DISPLAY.'</body></html>');
     }
 
